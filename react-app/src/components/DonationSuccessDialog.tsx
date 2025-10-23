@@ -1,0 +1,208 @@
+import { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Sparkles, Gift, Share2 } from "lucide-react";
+import confetti from "canvas-confetti";
+import hbarLogo from "@/assets/hbar-logo.png";
+import ngnLogo from "@/assets/ngn-logo.png";
+
+interface DonationSuccessDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedFractions: number;
+  totalPrice: number;
+  currency: "HBAR" | "NGN";
+  ngoName: string;
+  roundType?: string;
+  transactionHash?: string;
+  xpEarned?: number;
+}
+
+const DonationSuccessDialog = ({
+  open,
+  onOpenChange,
+  selectedFractions,
+  totalPrice,
+  currency,
+  ngoName,
+  roundType = "cleanup",
+  transactionHash,
+  xpEarned,
+}: DonationSuccessDialogProps) => {
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const NGN_TO_HBAR_RATE = 400;
+  
+  const getDisplayAmount = () => {
+    if (currency === "HBAR") {
+      return totalPrice.toFixed(3);
+    } else {
+      return (totalPrice * NGN_TO_HBAR_RATE).toFixed(2);
+    }
+  };
+
+  const handleShareOnX = () => {
+    const roundTypeText = roundType === "tree-planting" 
+      ? "tree planting" 
+      : roundType === "ocean-cleanup"
+      ? "ocean cleanup"
+      : "waste cleanup";
+    
+    const tweetText = `I just donated ${getDisplayAmount()} ${currency} to support ${roundTypeText} with @CleanUpDAO! 🌍\n\nJoined the eco-warrior movement and minted ${selectedFractions} NFT${selectedFractions > 1 ? 's' : ''} on @hedera 💚\n\nSupporting ${ngoName}\n\n#CleanUpDAO #Hedera #ClimateAction`;
+    
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    window.open(tweetUrl, "_blank");
+  };
+
+  const currencyLogo = currency === "HBAR" ? hbarLogo : ngnLogo;
+
+  useEffect(() => {
+    if (open && !showConfetti) {
+      setShowConfetti(true);
+      // Trigger confetti
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 2,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ["#10b981", "#3b82f6", "#8b5cf6"],
+        });
+        confetti({
+          particleCount: 2,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ["#10b981", "#3b82f6", "#8b5cf6"],
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    }
+
+    if (!open) {
+      setShowConfetti(false);
+    }
+  }, [open, showConfetti]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+              <CheckCircle2 className="w-20 h-20 text-primary relative animate-scale-in" />
+            </div>
+          </div>
+          <DialogTitle className="text-center text-3xl">
+            Donation Successful! 🎉
+          </DialogTitle>
+          <DialogDescription className="text-center text-base">
+            Thank you for supporting our cleanup efforts!
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-6">
+          <div className="bg-gradient-primary/10 border border-primary/30 rounded-lg p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Amount Donated</span>
+              <div className="text-right">
+                <span className="text-2xl font-bold text-gradient flex items-center gap-2 justify-end">
+                  <img src={currencyLogo} alt={currency} className="w-6 h-6" />
+                  {getDisplayAmount()} {currency}
+                </span>
+                {currency === "NGN" && (
+                  <span className="text-sm text-muted-foreground">≈ {totalPrice.toFixed(3)} HBAR</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">NFTs Minting</span>
+              <span className="text-xl font-bold flex items-center gap-2">
+                <Gift className="w-5 h-5 text-primary" />
+                {selectedFractions}
+              </span>
+            </div>
+
+            {xpEarned && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">XP Earned</span>
+                <span className="text-xl font-bold flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent" />
+                  {xpEarned}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Supporting NGO</span>
+              <span className="font-semibold">{ngoName}</span>
+            </div>
+          </div>
+
+          <div className="bg-secondary rounded-lg p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-semibold mb-1">What's Next?</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Your NFTs will be minted on the blockchain</li>
+                  <li>• You'll receive them in your wallet shortly</li>
+                  <li>• Your vote has been recorded for {ngoName}</li>
+                  <li>• Track your impact in transaction history</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            className="w-full bg-gradient-primary border-0 shadow-[0_8px_24px_hsl(220_10%_50%_/_0.2)] gap-2"
+            onClick={handleShareOnX}
+          >
+            <Share2 className="w-4 h-4" />
+            Share on X
+          </Button>
+          
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => onOpenChange(false)}
+            >
+              Close
+            </Button>
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => {
+                const hash = transactionHash || "mock";
+                window.open(`https://hashscan.io/testnet/transaction/${hash}`, "_blank");
+              }}
+            >
+              View on HashScan
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default DonationSuccessDialog;
