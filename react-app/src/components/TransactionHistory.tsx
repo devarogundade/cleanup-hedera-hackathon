@@ -209,7 +209,7 @@ const TransactionHistory = () => {
                         </TableCell>
                         <TableCell className="hidden lg:table-cell py-2 sm:py-3">
                           <a
-                            href={`https://hashscan.io/mainnet/transaction/${tx.transactionId}`}
+                            href={`https://hashscan.io/testnet/transaction/${tx.transactionId}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary hover:text-primary-glow transition-smooth underline text-xs sm:text-sm"

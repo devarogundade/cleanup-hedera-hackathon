@@ -126,6 +126,19 @@ contract Land is
             metadata
         );
 
+        for (uint256 i = 0; i < serial.length; i++) {
+            int txResponseCode = transferNFT(
+                underlying,
+                address(this),
+                behalfOf,
+                serial[i]
+            );
+
+            if (txResponseCode != HederaResponseCodes.SUCCESS) {
+                revert TokenTransferFailed(responseCode);
+            }
+        }
+
         tokenSerial = serial;
 
         if (responseCode != HederaResponseCodes.SUCCESS) {

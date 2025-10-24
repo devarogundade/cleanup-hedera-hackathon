@@ -14,6 +14,7 @@ interface LandInterface {
     error NotRegistered();
     error TokenCreationFailed(int256 responseCode);
     error TokenMintFailed(int256 responseCode);
+    error TokenTransferFailed(int256 responseCode);
 
     event LandInitialized(
         int32 squareMeters,
