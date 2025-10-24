@@ -1,13 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Trophy, Zap, Target, Crown, Monitor, Settings, Pause, Play, Volume2, VolumeX, LogOut } from "lucide-react";
+import {
+  ArrowLeft,
+  Trophy,
+  Zap,
+  Target,
+  Crown,
+  Monitor,
+  Settings,
+  Pause,
+  Play,
+  Volume2,
+  VolumeX,
+  LogOut,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/contexts/AppContext";
 import { useUpdateProfile } from "@/hooks/useProfile";
 import { useRound } from "@/hooks/useRounds";
-import useSound from "use-sound";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InstructorDialog } from "@/components/InstructorDialog";
@@ -25,7 +38,17 @@ interface GameObject {
   y: number;
   width: number;
   height: number;
-  type: "trash" | "bottle" | "can" | "tree" | "bus" | "car" | "building" | "lamp" | "plant-spot" | "bad-citizen";
+  type:
+    | "trash"
+    | "bottle"
+    | "can"
+    | "tree"
+    | "bus"
+    | "car"
+    | "building"
+    | "lamp"
+    | "plant-spot"
+    | "bad-citizen";
   collected?: boolean;
   planted?: boolean;
   variant?: number; // For visual variety
@@ -56,18 +79,18 @@ const CLEANUP_INSTRUCTIONS: Record<number, string[]> = {
     "This is your moment to be a savvy eco-fighter! Give it all you have...",
     "Use arrow keys or WASD to move your character around the city.",
     "Collect ALL trash before time runs out! Press SPACE to use your sword!",
-    "Eliminate bad citizens who throw trash back. Complete the mission to win!"
+    "Eliminate bad citizens who throw trash back. Complete the mission to win!",
   ],
   2: [
     "Great job warrior! Ready for the next challenge?",
     "This time, you have less time. Stay focused and keep collecting!",
-    "Use your sword (SPACE) to stop bad citizens from polluting. Collect all trash to win!"
+    "Use your sword (SPACE) to stop bad citizens from polluting. Collect all trash to win!",
   ],
   3: [
     "You're on fire! The planet needs heroes like you.",
     "Each scene gets tougher, but so do you!",
-    "Show everyone who the real eco-champion is!"
-  ]
+    "Show everyone who the real eco-champion is!",
+  ],
 };
 
 const TREE_PLANTING_INSTRUCTIONS: Record<number, string[]> = {
@@ -75,18 +98,18 @@ const TREE_PLANTING_INSTRUCTIONS: Record<number, string[]> = {
     "Welcome to the Tree Planting Challenge! Time to make the planet greener!",
     "Use arrow keys or WASD to move to planting spots marked on the ground.",
     "Plant ALL trees before time runs out! Press SPACE to use your sword!",
-    "Bad citizens will cut down your trees - eliminate them with your sword!"
+    "Bad citizens will cut down your trees - eliminate them with your sword!",
   ],
   2: [
     "Excellent work! Ready to plant more trees?",
     "The clock is ticking faster, but every tree counts!",
-    "Protect your trees from bad citizens using your sword (SPACE)!"
+    "Protect your trees from bad citizens using your sword (SPACE)!",
   ],
   3: [
     "You're becoming a master tree planter!",
     "Speed and precision - that's what it takes!",
-    "Complete all tree plantings to win the scene!"
-  ]
+    "Complete all tree plantings to win the scene!",
+  ],
 };
 
 const GamePlay = () => {
@@ -100,25 +123,28 @@ const GamePlay = () => {
   const [selectedLevel, setSelectedLevel] = useState<GameLevel>("medium");
   const [playerWon, setPlayerWon] = useState(false);
   const [gameMode, setGameMode] = useState<"cleanup" | "planting">("cleanup");
-  
+
   // Multi-scene states
   const [currentScene, setCurrentScene] = useState(1);
   const [accumulatedXP, setAccumulatedXP] = useState(0);
   const [showInstructor, setShowInstructor] = useState(true);
   const [showRewardedAd, setShowRewardedAd] = useState(false);
-  
+
   // Game control states
   const [isPaused, setIsPaused] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  
+
   // Tree planting state - track which spot player is standing on and for how long
-  const standingOnSpotRef = useRef<{ spot: GameObject | null; startTime: number | null }>({
+  const standingOnSpotRef = useRef<{
+    spot: GameObject | null;
+    startTime: number | null;
+  }>({
     spot: null,
-    startTime: null
+    startTime: null,
   });
-  
+
   const { accountId } = useApp();
   const { mutate: updateProfile } = useUpdateProfile();
   const { data: roundMetadata } = useRound(roundId ? parseInt(roundId) : 1);
@@ -127,60 +153,76 @@ const GamePlay = () => {
   const isMobile = useIsMobile();
 
   // Game sounds using Web Audio API
-  const playGameSound = (type: 'collect' | 'win' | 'lose') => {
+  const playGameSound = (type: "collect" | "win" | "lose") => {
     if (!soundEnabled) return;
-    
+
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       switch (type) {
-        case 'collect':
+        case "collect":
           oscillator.frequency.value = 800;
-          oscillator.type = 'sine';
+          oscillator.type = "sine";
           gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioContext.currentTime + 0.1
+          );
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.1);
           break;
-        case 'win':
+        case "win":
           // Victory fanfare
           oscillator.frequency.value = 523.25; // C5
-          oscillator.type = 'sine';
+          oscillator.type = "sine";
           gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioContext.currentTime + 0.4
+          );
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.4);
-          
+
           // Add second note
           const osc2 = audioContext.createOscillator();
           const gain2 = audioContext.createGain();
           osc2.connect(gain2);
           gain2.connect(audioContext.destination);
           osc2.frequency.value = 659.25; // E5
-          osc2.type = 'sine';
+          osc2.type = "sine";
           gain2.gain.setValueAtTime(0.4, audioContext.currentTime + 0.15);
-          gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.55);
+          gain2.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioContext.currentTime + 0.55
+          );
           osc2.start(audioContext.currentTime + 0.15);
           osc2.stop(audioContext.currentTime + 0.55);
           break;
-        case 'lose':
+        case "lose":
           // Sad trombone effect
           oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-          oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.5);
-          oscillator.type = 'sawtooth';
+          oscillator.frequency.exponentialRampToValueAtTime(
+            200,
+            audioContext.currentTime + 0.5
+          );
+          oscillator.type = "sawtooth";
           gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            audioContext.currentTime + 0.5
+          );
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.5);
           break;
       }
     } catch (error) {
-      console.error('Error playing game sound:', error);
+      console.error("Error playing game sound:", error);
     }
   };
 
@@ -191,7 +233,7 @@ const GamePlay = () => {
     height: 60,
     speed: 6,
     direction: "right",
-    score: 0
+    score: 0,
   });
 
   const objectsRef = useRef<GameObject[]>([]);
@@ -213,19 +255,31 @@ const GamePlay = () => {
   const getLevelSettings = (level: GameLevel, scene: number = 1) => {
     // Base speed increases gradually with scene number
     // Scene 1: slower AI, Scene 2: medium, Scene 3+: progressively faster
-    const sceneSpeedMultiplier = 0.5 + (scene * 0.3); // Scene 1: 0.8x, Scene 2: 1.1x, Scene 3: 1.4x, etc.
-    
+    const sceneSpeedMultiplier = 0.5 + scene * 0.3; // Scene 1: 0.8x, Scene 2: 1.1x, Scene 3: 1.4x, etc.
+
     let baseSpeed: number;
     switch (level) {
       case "easy":
         baseSpeed = 1.5;
-        return { opponentSpeed: baseSpeed * sceneSpeedMultiplier, itemCount: 50, timeLimit: 180 };
+        return {
+          opponentSpeed: baseSpeed * sceneSpeedMultiplier,
+          itemCount: 50,
+          timeLimit: 180,
+        };
       case "medium":
         baseSpeed = 1.8;
-        return { opponentSpeed: baseSpeed * sceneSpeedMultiplier, itemCount: 60, timeLimit: 150 };
+        return {
+          opponentSpeed: baseSpeed * sceneSpeedMultiplier,
+          itemCount: 60,
+          timeLimit: 150,
+        };
       case "hard":
         baseSpeed = 2.2;
-        return { opponentSpeed: baseSpeed * sceneSpeedMultiplier, itemCount: 70, timeLimit: 120 };
+        return {
+          opponentSpeed: baseSpeed * sceneSpeedMultiplier,
+          itemCount: 70,
+          timeLimit: 120,
+        };
     }
   };
 
@@ -233,56 +287,60 @@ const GamePlay = () => {
   useEffect(() => {
     const settings = getLevelSettings(selectedLevel, currentScene);
     const objects: GameObject[] = [];
-    
+
     const canvasWidth = window.innerWidth;
     const canvasHeight = window.innerHeight - 60;
     const roadY = canvasHeight - 120;
     const safeZoneTop = 50;
     const safeZoneBottom = roadY - 50;
-    
+
     if (gameMode === "cleanup") {
       // Add trash items using scattered grid to prevent overlapping
       const trashTypes = ["trash", "bottle", "can"];
       const oceanStartX = canvasWidth * 0.7; // Ocean region starts at 70% of canvas width
-      
+
       // Calculate grid dimensions for scattered placement
       const cellSize = 70; // Size of each grid cell (larger than trash items)
       const availableWidth = canvasWidth - 100; // Account for margins
       const availableHeight = safeZoneBottom - safeZoneTop;
       const cols = Math.floor(availableWidth / cellSize);
       const rows = Math.floor(availableHeight / cellSize);
-      
+
       // Create array of all possible grid cells
       const gridCells: { x: number; y: number; isOcean: boolean }[] = [];
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          const cellX = 50 + (col * cellSize);
-          const cellY = safeZoneTop + (row * cellSize);
+          const cellX = 50 + col * cellSize;
+          const cellY = safeZoneTop + row * cellSize;
           const isInOcean = cellX > oceanStartX;
           gridCells.push({ x: cellX, y: cellY, isOcean: isInOcean });
         }
       }
-      
+
       // Shuffle grid cells for random placement
       for (let i = gridCells.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [gridCells[i], gridCells[j]] = [gridCells[j], gridCells[i]];
       }
-      
+
       // Distribute trash items: 60% ocean, 40% city
       const oceanCount = Math.floor(settings.itemCount * 0.6);
       const cityCount = settings.itemCount - oceanCount;
-      
-      const oceanCells = gridCells.filter(cell => cell.isOcean).slice(0, oceanCount);
-      const cityCells = gridCells.filter(cell => !cell.isOcean).slice(0, cityCount);
+
+      const oceanCells = gridCells
+        .filter((cell) => cell.isOcean)
+        .slice(0, oceanCount);
+      const cityCells = gridCells
+        .filter((cell) => !cell.isOcean)
+        .slice(0, cityCount);
       const selectedCells = [...oceanCells, ...cityCells];
-      
+
       // Place trash items in selected cells with random offset
-      selectedCells.forEach(cell => {
+      selectedCells.forEach((cell) => {
         const type = trashTypes[Math.floor(Math.random() * trashTypes.length)];
         const randomOffsetX = Math.random() * (cellSize - 40); // Leave margin within cell
         const randomOffsetY = Math.random() * (cellSize - 40);
-        
+
         objects.push({
           x: cell.x + randomOffsetX,
           y: cell.y + randomOffsetY,
@@ -290,7 +348,7 @@ const GamePlay = () => {
           height: 30,
           type: type as "trash" | "bottle" | "can",
           collected: false,
-          variant: Math.floor(Math.random() * 3)
+          variant: Math.floor(Math.random() * 3),
         });
       });
     } else {
@@ -298,31 +356,31 @@ const GamePlay = () => {
       const cols = 10;
       const rows = Math.ceil(settings.itemCount / cols);
       const spacing = 80;
-      const startX = (canvasWidth - (cols * spacing)) / 2;
+      const startX = (canvasWidth - cols * spacing) / 2;
       const startY = safeZoneTop + 50;
-      
+
       let spotIndex = 0;
       for (let row = 0; row < rows && spotIndex < settings.itemCount; row++) {
         for (let col = 0; col < cols && spotIndex < settings.itemCount; col++) {
           objects.push({
-            x: startX + (col * spacing),
-            y: startY + (row * spacing),
+            x: startX + col * spacing,
+            y: startY + row * spacing,
             width: 40,
             height: 40,
             type: "plant-spot",
             planted: false,
-            variant: Math.floor(Math.random() * 3)
+            variant: Math.floor(Math.random() * 3),
           });
           spotIndex++;
         }
       }
-      
+
       // Generate cactus positions once for tree planting
       cactiPositionsRef.current = [];
       for (let i = 0; i < 5; i++) {
         cactiPositionsRef.current.push({
           x: Math.random() * canvasWidth,
-          y: canvasHeight - 150 + Math.random() * 50
+          y: canvasHeight - 150 + Math.random() * 50,
         });
       }
     }
@@ -349,15 +407,50 @@ const GamePlay = () => {
     const cityObjects = [
       { x: 200, y: 350, width: 100, height: 150, type: "tree" as const },
       { x: 500, y: 250, width: 150, height: 100, type: "bus" as const },
-      { x: 800, y: 150, width: 120, height: 250, type: "building" as const, windowStates: generateWindowStates(building1Rows, building1Cols) },
+      {
+        x: 800,
+        y: 150,
+        width: 120,
+        height: 250,
+        type: "building" as const,
+        windowStates: generateWindowStates(building1Rows, building1Cols),
+      },
       { x: 100, y: 200, width: 100, height: 150, type: "tree" as const },
       { x: 1100, y: 300, width: 100, height: 150, type: "tree" as const },
-      { x: 1400, y: 280, width: 180, height: 90, type: "car" as const, variant: 0 },
-      { x: 1700, y: 100, width: 120, height: 300, type: "building" as const, windowStates: generateWindowStates(building2Rows, building2Cols) },
-      { x: 350, y: 100, width: 120, height: 200, type: "building" as const, windowStates: generateWindowStates(building3Rows, building3Cols) },
+      {
+        x: 1400,
+        y: 280,
+        width: 180,
+        height: 90,
+        type: "car" as const,
+        variant: 0,
+      },
+      {
+        x: 1700,
+        y: 100,
+        width: 120,
+        height: 300,
+        type: "building" as const,
+        windowStates: generateWindowStates(building2Rows, building2Cols),
+      },
+      {
+        x: 350,
+        y: 100,
+        width: 120,
+        height: 200,
+        type: "building" as const,
+        windowStates: generateWindowStates(building3Rows, building3Cols),
+      },
       { x: 1300, y: 150, width: 100, height: 150, type: "tree" as const },
       { x: 650, y: 400, width: 100, height: 150, type: "tree" as const },
-      { x: 950, y: 290, width: 180, height: 90, type: "car" as const, variant: 1 },
+      {
+        x: 950,
+        y: 290,
+        width: 180,
+        height: 90,
+        type: "car" as const,
+        variant: 1,
+      },
       { x: 300, y: roadY - 200, width: 30, height: 80, type: "lamp" as const },
       { x: 700, y: roadY - 200, width: 30, height: 80, type: "lamp" as const },
       { x: 1200, y: roadY - 200, width: 30, height: 80, type: "lamp" as const },
@@ -390,21 +483,25 @@ const GamePlay = () => {
     if (gameOver && gameStarted) {
       // Check if player completed all tasks
       setPlayerWon(playerWon);
-      
+
       if (playerWon) {
         // Win: accumulate XP and offer to continue to next scene
         const sceneXP = playerRef.current.score * 2;
         const winBonus = Math.floor(sceneXP * 0.5);
         const totalSceneXP = sceneXP + winBonus;
-        
-        setAccumulatedXP(prev => prev + totalSceneXP);
-        
-        playGameSound('win');
-        toast.success(`Victory! Earned ${totalSceneXP} XP! Total: ${accumulatedXP + totalSceneXP} XP`);
+
+        setAccumulatedXP((prev) => prev + totalSceneXP);
+
+        playGameSound("win");
+        toast.success(
+          `Victory! Earned ${totalSceneXP} XP! Total: ${
+            accumulatedXP + totalSceneXP
+          } XP`
+        );
       } else {
         // Loss: play sound, UI will show options
-        playGameSound('lose');
-        toast.error('Time ran out! Mission failed.');
+        playGameSound("lose");
+        toast.error("Time ran out! Mission failed.");
       }
     }
   }, [gameOver, gameStarted, accumulatedXP, playerWon]);
@@ -412,25 +509,28 @@ const GamePlay = () => {
   // Check if all items collected/planted (runs every frame via game loop)
   const checkGameComplete = () => {
     if (!gameStarted || gameOver) return;
-    
+
     if (gameMode === "cleanup") {
       const trashItems = objectsRef.current.filter(
-        obj => obj.type === "trash" || obj.type === "bottle" || obj.type === "can"
+        (obj) =>
+          obj.type === "trash" || obj.type === "bottle" || obj.type === "can"
       );
-      
-      if (trashItems.length > 0 && trashItems.every(obj => obj.collected)) {
+
+      if (trashItems.length > 0 && trashItems.every((obj) => obj.collected)) {
         setGameOver(true);
         setPlayerWon(true);
-        playGameSound('win');
+        playGameSound("win");
         toast.success("All trash collected! Mission complete!");
       }
     } else {
-      const plantSpots = objectsRef.current.filter(obj => obj.type === "plant-spot");
-      
-      if (plantSpots.length > 0 && plantSpots.every(obj => obj.planted)) {
+      const plantSpots = objectsRef.current.filter(
+        (obj) => obj.type === "plant-spot"
+      );
+
+      if (plantSpots.length > 0 && plantSpots.every((obj) => obj.planted)) {
         setGameOver(true);
         setPlayerWon(true);
-        playGameSound('win');
+        playGameSound("win");
         toast.success("All trees planted! Mission complete!");
       }
     }
@@ -439,17 +539,32 @@ const GamePlay = () => {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "a", "d", "w", "s"].includes(e.key)) {
+      if (
+        [
+          "ArrowLeft",
+          "ArrowRight",
+          "ArrowUp",
+          "ArrowDown",
+          "a",
+          "d",
+          "w",
+          "s",
+        ].includes(e.key)
+      ) {
         e.preventDefault();
         keysPressed.current.add(e.key.toLowerCase());
       }
-      
+
       // Sword attack with space key
-      if (e.key === " " && !playerRef.current.swordActive && !playerRef.current.swordCooldown) {
+      if (
+        e.key === " " &&
+        !playerRef.current.swordActive &&
+        !playerRef.current.swordCooldown
+      ) {
         e.preventDefault();
         playerRef.current.swordActive = true;
         playerRef.current.swordCooldown = Date.now() + 500; // 500ms cooldown
-        
+
         // Auto deactivate sword after 200ms
         setTimeout(() => {
           if (playerRef.current) {
@@ -487,7 +602,12 @@ const GamePlay = () => {
     skyGradient.addColorStop(0, "#87CEEB");
     skyGradient.addColorStop(1, "#B0E0E6");
 
-    const groundGradient = ctx.createLinearGradient(0, canvas.height - 100, 0, canvas.height);
+    const groundGradient = ctx.createLinearGradient(
+      0,
+      canvas.height - 100,
+      0,
+      canvas.height
+    );
     groundGradient.addColorStop(0, "#5A8F5A");
     groundGradient.addColorStop(1, "#4A7F4A");
 
@@ -495,19 +615,29 @@ const GamePlay = () => {
       if (gameMode === "planting") {
         // Desert background for tree planting
         // Sky gradient
-        const desertSkyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        const desertSkyGradient = ctx.createLinearGradient(
+          0,
+          0,
+          0,
+          canvas.height
+        );
         desertSkyGradient.addColorStop(0, "#FFD89B");
         desertSkyGradient.addColorStop(1, "#FFAA66");
         ctx.fillStyle = desertSkyGradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         // Sand ground
-        const sandGradient = ctx.createLinearGradient(0, canvas.height - 150, 0, canvas.height);
+        const sandGradient = ctx.createLinearGradient(
+          0,
+          canvas.height - 150,
+          0,
+          canvas.height
+        );
         sandGradient.addColorStop(0, "#F4C27A");
         sandGradient.addColorStop(1, "#D4A86A");
         ctx.fillStyle = sandGradient;
         ctx.fillRect(0, canvas.height - 150, canvas.width, 150);
-        
+
         // Sand dunes pattern
         ctx.fillStyle = "rgba(212, 168, 106, 0.3)";
         for (let i = 0; i < canvas.width; i += 150) {
@@ -515,10 +645,10 @@ const GamePlay = () => {
           ctx.ellipse(i + 75, canvas.height - 120, 100, 30, 0, 0, Math.PI * 2);
           ctx.fill();
         }
-        
+
         // Add some cacti in the background (use cached positions)
         ctx.fillStyle = "#2D5016";
-        cactiPositionsRef.current.forEach(cactus => {
+        cactiPositionsRef.current.forEach((cactus) => {
           ctx.fillRect(cactus.x, cactus.y, 8, 30);
           ctx.fillRect(cactus.x - 10, cactus.y + 10, 10, 3);
           ctx.fillRect(cactus.x + 8, cactus.y + 10, 10, 3);
@@ -531,19 +661,24 @@ const GamePlay = () => {
 
         // Ocean region (right 30% of canvas)
         const oceanStartX = canvas.width * 0.7;
-        const oceanGradient = ctx.createLinearGradient(oceanStartX, 0, canvas.width, canvas.height);
+        const oceanGradient = ctx.createLinearGradient(
+          oceanStartX,
+          0,
+          canvas.width,
+          canvas.height
+        );
         oceanGradient.addColorStop(0, "#4A90E2");
         oceanGradient.addColorStop(0.5, "#357ABD");
         oceanGradient.addColorStop(1, "#2E5C8A");
         ctx.fillStyle = oceanGradient;
         ctx.fillRect(oceanStartX, 0, canvas.width - oceanStartX, canvas.height);
-        
+
         // Waves in ocean
         ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
         ctx.lineWidth = 2;
         for (let i = 0; i < 5; i++) {
           ctx.beginPath();
-          const waveY = 100 + (i * 80);
+          const waveY = 100 + i * 80;
           for (let x = oceanStartX; x < canvas.width; x += 30) {
             const y = waveY + Math.sin((x + Date.now() / 500) * 0.05) * 10;
             if (x === oceanStartX) {
@@ -554,7 +689,7 @@ const GamePlay = () => {
           }
           ctx.stroke();
         }
-        
+
         // Beach/shore area
         ctx.fillStyle = "#F4C27A";
         ctx.beginPath();
@@ -568,7 +703,7 @@ const GamePlay = () => {
         // Ground with texture for city area
         ctx.fillStyle = groundGradient;
         ctx.fillRect(0, canvas.height - 100, oceanStartX, 100);
-        
+
         // Draw road
         ctx.fillStyle = "#4A4A4A";
         ctx.fillRect(0, canvas.height - 120, oceanStartX, 20);
@@ -585,27 +720,44 @@ const GamePlay = () => {
       // Draw city objects (not collectibles - they will be drawn last)
       objectsRef.current.forEach((obj) => {
         // Skip collectibles for now - we'll draw them on top later
-        if (obj.type === "trash" || obj.type === "bottle" || obj.type === "can" || obj.type === "plant-spot") {
+        if (
+          obj.type === "trash" ||
+          obj.type === "bottle" ||
+          obj.type === "can" ||
+          obj.type === "plant-spot"
+        ) {
           return;
         }
-        
+
         if (obj.type === "tree") {
           // Enhanced tree
           ctx.save();
           ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
           ctx.shadowBlur = 10;
-          
-          const trunkGradient = ctx.createLinearGradient(obj.x + 35, 0, obj.x + 65, 0);
+
+          const trunkGradient = ctx.createLinearGradient(
+            obj.x + 35,
+            0,
+            obj.x + 65,
+            0
+          );
           trunkGradient.addColorStop(0, "#654321");
           trunkGradient.addColorStop(1, "#8B4513");
           ctx.fillStyle = trunkGradient;
           ctx.fillRect(obj.x + 35, obj.y + 80, 30, 70);
-          
-          const foliageGradient = ctx.createRadialGradient(obj.x + 50, obj.y + 60, 0, obj.x + 50, obj.y + 60, 50);
+
+          const foliageGradient = ctx.createRadialGradient(
+            obj.x + 50,
+            obj.y + 60,
+            0,
+            obj.x + 50,
+            obj.y + 60,
+            50
+          );
           foliageGradient.addColorStop(0, "#32CD32");
           foliageGradient.addColorStop(1, "#228B22");
           ctx.fillStyle = foliageGradient;
-          
+
           ctx.beginPath();
           ctx.arc(obj.x + 50, obj.y + 60, 50, 0, Math.PI * 2);
           ctx.fill();
@@ -621,8 +773,13 @@ const GamePlay = () => {
           ctx.save();
           ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
           ctx.shadowBlur = 8;
-          
-          const busGradient = ctx.createLinearGradient(obj.x, 0, obj.x + obj.width, 0);
+
+          const busGradient = ctx.createLinearGradient(
+            obj.x,
+            0,
+            obj.x + obj.width,
+            0
+          );
           busGradient.addColorStop(0, "#FFD700");
           busGradient.addColorStop(1, "#FFA500");
           ctx.fillStyle = busGradient;
@@ -630,7 +787,7 @@ const GamePlay = () => {
           ctx.strokeStyle = "#CC8800";
           ctx.lineWidth = 2;
           ctx.strokeRect(obj.x, obj.y + 20, obj.width, 60);
-          
+
           ctx.fillStyle = "#87CEEB";
           ctx.fillRect(obj.x + 10, obj.y + 30, 30, 25);
           ctx.fillRect(obj.x + 50, obj.y + 30, 30, 25);
@@ -640,8 +797,15 @@ const GamePlay = () => {
           ctx.strokeRect(obj.x + 10, obj.y + 30, 30, 25);
           ctx.strokeRect(obj.x + 50, obj.y + 30, 30, 25);
           ctx.strokeRect(obj.x + 90, obj.y + 30, 30, 25);
-          
-          const wheelGradient = ctx.createRadialGradient(obj.x + 30, obj.y + 80, 0, obj.x + 30, obj.y + 80, 12);
+
+          const wheelGradient = ctx.createRadialGradient(
+            obj.x + 30,
+            obj.y + 80,
+            0,
+            obj.x + 30,
+            obj.y + 80,
+            12
+          );
           wheelGradient.addColorStop(0, "#555");
           wheelGradient.addColorStop(1, "#222");
           ctx.fillStyle = wheelGradient;
@@ -651,7 +815,7 @@ const GamePlay = () => {
           ctx.beginPath();
           ctx.arc(obj.x + 120, obj.y + 80, 12, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.fillStyle = "#AAA";
           ctx.beginPath();
           ctx.arc(obj.x + 30, obj.y + 80, 6, 0, Math.PI * 2);
@@ -665,26 +829,31 @@ const GamePlay = () => {
           ctx.save();
           ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
           ctx.shadowBlur = 8;
-          
+
           const carColors = ["#EF4444", "#3B82F6", "#10B981", "#F59E0B"];
           const carColor = carColors[obj.variant || 0];
-          
-          const carGradient = ctx.createLinearGradient(obj.x, 0, obj.x + obj.width, 0);
+
+          const carGradient = ctx.createLinearGradient(
+            obj.x,
+            0,
+            obj.x + obj.width,
+            0
+          );
           carGradient.addColorStop(0, carColor);
           carGradient.addColorStop(1, carColor + "CC");
           ctx.fillStyle = carGradient;
           ctx.fillRect(obj.x, obj.y + 40, obj.width, 50);
           ctx.fillRect(obj.x + 30, obj.y + 10, obj.width - 60, 40);
-          
+
           ctx.strokeStyle = "#000";
           ctx.lineWidth = 2;
           ctx.strokeRect(obj.x, obj.y + 40, obj.width, 50);
           ctx.strokeRect(obj.x + 30, obj.y + 10, obj.width - 60, 40);
-          
+
           ctx.fillStyle = "#87CEEB";
           ctx.fillRect(obj.x + 40, obj.y + 15, 40, 30);
           ctx.fillRect(obj.x + 100, obj.y + 15, 40, 30);
-          
+
           const carWheelGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 10);
           carWheelGradient.addColorStop(0, "#333");
           carWheelGradient.addColorStop(1, "#111");
@@ -701,15 +870,15 @@ const GamePlay = () => {
           ctx.save();
           ctx.shadowColor = "rgba(255, 215, 0, 0.5)";
           ctx.shadowBlur = 20;
-          
+
           ctx.fillStyle = "#4A5568";
           ctx.fillRect(obj.x + 12, obj.y + 20, 6, obj.height - 20);
-          
+
           ctx.fillStyle = "#FFD700";
           ctx.beginPath();
           ctx.arc(obj.x + 15, obj.y + 15, 12, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.fillStyle = "#FFF9C4";
           ctx.beginPath();
           ctx.arc(obj.x + 15, obj.y + 15, 8, 0, Math.PI * 2);
@@ -720,8 +889,13 @@ const GamePlay = () => {
           ctx.save();
           ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
           ctx.shadowBlur = 15;
-          
-          const buildingGradient = ctx.createLinearGradient(obj.x, 0, obj.x + obj.width, 0);
+
+          const buildingGradient = ctx.createLinearGradient(
+            obj.x,
+            0,
+            obj.x + obj.width,
+            0
+          );
           buildingGradient.addColorStop(0, "#A0A0A0");
           buildingGradient.addColorStop(1, "#707070");
           ctx.fillStyle = buildingGradient;
@@ -729,7 +903,7 @@ const GamePlay = () => {
           ctx.strokeStyle = "#505050";
           ctx.lineWidth = 2;
           ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-          
+
           // Use pre-generated window states to prevent flickering
           const rows = Math.floor(obj.height / 40);
           const cols = Math.floor(obj.width / 40);
@@ -737,12 +911,22 @@ const GamePlay = () => {
             for (let col = 0; col < cols; col++) {
               const lightOn = obj.windowStates?.[row]?.[col] ?? false;
               ctx.fillStyle = lightOn ? "#FFD700" : "#4A4A4A";
-              ctx.fillRect(obj.x + col * 40 + 10, obj.y + row * 40 + 10, 20, 25);
+              ctx.fillRect(
+                obj.x + col * 40 + 10,
+                obj.y + row * 40 + 10,
+                20,
+                25
+              );
               ctx.strokeStyle = "#333";
-              ctx.strokeRect(obj.x + col * 40 + 10, obj.y + row * 40 + 10, 20, 25);
+              ctx.strokeRect(
+                obj.x + col * 40 + 10,
+                obj.y + row * 40 + 10,
+                20,
+                25
+              );
             }
           }
-          
+
           ctx.fillStyle = "#8B0000";
           ctx.beginPath();
           ctx.moveTo(obj.x - 10, obj.y);
@@ -763,25 +947,35 @@ const GamePlay = () => {
             ctx.globalAlpha = 0.5; // Make it faded
             ctx.shadowColor = "rgba(139, 69, 19, 0.3)";
             ctx.shadowBlur = 5;
-            
+
             // Check if player is standing on this spot
             const isPlayerStanding = standingOnSpotRef.current.spot === obj;
-            const progress = isPlayerStanding && standingOnSpotRef.current.startTime
-              ? Math.min(1, (Date.now() - standingOnSpotRef.current.startTime) / 500)
-              : 0;
-            
+            const progress =
+              isPlayerStanding && standingOnSpotRef.current.startTime
+                ? Math.min(
+                    1,
+                    (Date.now() - standingOnSpotRef.current.startTime) / 500
+                  )
+                : 0;
+
             // Soil circle - glow if player is standing
             if (isPlayerStanding && progress > 0) {
               ctx.shadowColor = "rgba(34, 197, 94, 0.6)";
               ctx.shadowBlur = 15;
-              ctx.globalAlpha = 0.5 + (progress * 0.5); // Gradually become more visible
+              ctx.globalAlpha = 0.5 + progress * 0.5; // Gradually become more visible
             }
-            
+
             ctx.fillStyle = "#8B4513";
             ctx.beginPath();
-            ctx.arc(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width / 2, 0, Math.PI * 2);
+            ctx.arc(
+              obj.x + obj.width / 2,
+              obj.y + obj.height / 2,
+              obj.width / 2,
+              0,
+              Math.PI * 2
+            );
             ctx.fill();
-            
+
             // Progress ring
             if (isPlayerStanding && progress > 0) {
               ctx.globalAlpha = 1; // Full opacity for progress ring
@@ -789,28 +983,38 @@ const GamePlay = () => {
               ctx.lineWidth = 4;
               ctx.beginPath();
               ctx.arc(
-                obj.x + obj.width / 2, 
-                obj.y + obj.height / 2, 
-                obj.width / 2 + 5, 
-                -Math.PI / 2, 
-                -Math.PI / 2 + (Math.PI * 2 * progress)
+                obj.x + obj.width / 2,
+                obj.y + obj.height / 2,
+                obj.width / 2 + 5,
+                -Math.PI / 2,
+                -Math.PI / 2 + Math.PI * 2 * progress
               );
               ctx.stroke();
-              ctx.globalAlpha = 0.5 + (progress * 0.5); // Restore for other elements
+              ctx.globalAlpha = 0.5 + progress * 0.5; // Restore for other elements
             }
-            
+
             // Inner lighter circle
             ctx.fillStyle = "#A0522D";
             ctx.beginPath();
-            ctx.arc(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width / 3, 0, Math.PI * 2);
+            ctx.arc(
+              obj.x + obj.width / 2,
+              obj.y + obj.height / 2,
+              obj.width / 3,
+              0,
+              Math.PI * 2
+            );
             ctx.fill();
-            
+
             // Planting icon
             ctx.fillStyle = "#228B22";
             ctx.font = "24px Arial";
             ctx.textAlign = "center";
-            ctx.fillText("🌱", obj.x + obj.width / 2, obj.y + obj.height / 2 + 8);
-            
+            ctx.fillText(
+              "🌱",
+              obj.x + obj.width / 2,
+              obj.y + obj.height / 2 + 8
+            );
+
             ctx.restore();
           } else {
             // Planted tree - fully visible and vibrant
@@ -818,21 +1022,33 @@ const GamePlay = () => {
             ctx.globalAlpha = 1; // Full opacity for planted trees
             ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
             ctx.shadowBlur = 10;
-            
+
             const treeX = obj.x + obj.width / 2 - 50;
             const treeY = obj.y + obj.height / 2 - 75;
-            
-            const trunkGradient = ctx.createLinearGradient(treeX + 35, 0, treeX + 65, 0);
+
+            const trunkGradient = ctx.createLinearGradient(
+              treeX + 35,
+              0,
+              treeX + 65,
+              0
+            );
             trunkGradient.addColorStop(0, "#654321");
             trunkGradient.addColorStop(1, "#8B4513");
             ctx.fillStyle = trunkGradient;
             ctx.fillRect(treeX + 35, treeY + 80, 30, 70);
-            
-            const foliageGradient = ctx.createRadialGradient(treeX + 50, treeY + 60, 0, treeX + 50, treeY + 60, 50);
+
+            const foliageGradient = ctx.createRadialGradient(
+              treeX + 50,
+              treeY + 60,
+              0,
+              treeX + 50,
+              treeY + 60,
+              50
+            );
             foliageGradient.addColorStop(0, "#32CD32");
             foliageGradient.addColorStop(1, "#228B22");
             ctx.fillStyle = foliageGradient;
-            
+
             ctx.beginPath();
             ctx.arc(treeX + 50, treeY + 60, 50, 0, Math.PI * 2);
             ctx.fill();
@@ -844,18 +1060,27 @@ const GamePlay = () => {
             ctx.fill();
             ctx.restore();
           }
-        } else if ((obj.type === "trash" || obj.type === "bottle" || obj.type === "can") && !obj.collected) {
+        } else if (
+          (obj.type === "trash" ||
+            obj.type === "bottle" ||
+            obj.type === "can") &&
+          !obj.collected
+        ) {
           ctx.save();
-          
+
           // Check if player is standing on this trash item
           const isPlayerStanding = standingOnSpotRef.current.spot === obj;
-          const progress = isPlayerStanding && standingOnSpotRef.current.startTime
-            ? Math.min(1, (Date.now() - standingOnSpotRef.current.startTime) / 500)
-            : 0;
-          
+          const progress =
+            isPlayerStanding && standingOnSpotRef.current.startTime
+              ? Math.min(
+                  1,
+                  (Date.now() - standingOnSpotRef.current.startTime) / 500
+                )
+              : 0;
+
           // Make trash faded initially, more visible as player stands
-          ctx.globalAlpha = 0.6 + (progress * 0.4);
-          
+          ctx.globalAlpha = 0.6 + progress * 0.4;
+
           // Add glow effect when collecting
           if (isPlayerStanding && progress > 0) {
             ctx.shadowColor = "rgba(34, 197, 94, 0.6)";
@@ -864,15 +1089,23 @@ const GamePlay = () => {
             ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
             ctx.shadowBlur = 5;
           }
-          
+
           ctx.shadowOffsetX = 2;
           ctx.shadowOffsetY = 2;
-          
+
           if (obj.type === "trash") {
             // Trash bag
             ctx.fillStyle = "#FF6B35";
             ctx.beginPath();
-            ctx.ellipse(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width / 2, obj.height / 2, 0, 0, Math.PI * 2);
+            ctx.ellipse(
+              obj.x + obj.width / 2,
+              obj.y + obj.height / 2,
+              obj.width / 2,
+              obj.height / 2,
+              0,
+              0,
+              Math.PI * 2
+            );
             ctx.fill();
             ctx.strokeStyle = "#D94E2A";
             ctx.lineWidth = 3;
@@ -880,10 +1113,19 @@ const GamePlay = () => {
             ctx.fillStyle = "#FFF";
             ctx.font = "20px Arial";
             ctx.textAlign = "center";
-            ctx.fillText("🗑️", obj.x + obj.width / 2, obj.y + obj.height / 2 + 7);
+            ctx.fillText(
+              "🗑️",
+              obj.x + obj.width / 2,
+              obj.y + obj.height / 2 + 7
+            );
           } else if (obj.type === "bottle") {
             // Bottle
-            ctx.fillStyle = obj.variant === 0 ? "#4A90E2" : obj.variant === 1 ? "#22C55E" : "#F59E0B";
+            ctx.fillStyle =
+              obj.variant === 0
+                ? "#4A90E2"
+                : obj.variant === 1
+                ? "#22C55E"
+                : "#F59E0B";
             ctx.fillRect(obj.x + 8, obj.y, 14, obj.height);
             ctx.fillRect(obj.x + 6, obj.y + 5, 18, obj.height - 10);
             ctx.strokeStyle = "#000";
@@ -894,59 +1136,93 @@ const GamePlay = () => {
             ctx.fillRect(obj.x + 8, obj.y - 3, 14, 5);
           } else if (obj.type === "can") {
             // Can
-            ctx.fillStyle = obj.variant === 0 ? "#EF4444" : obj.variant === 1 ? "#3B82F6" : "#8B5CF6";
+            ctx.fillStyle =
+              obj.variant === 0
+                ? "#EF4444"
+                : obj.variant === 1
+                ? "#3B82F6"
+                : "#8B5CF6";
             ctx.fillRect(obj.x + 2, obj.y + 5, obj.width - 4, obj.height - 10);
             ctx.strokeStyle = "#000";
             ctx.lineWidth = 2;
-            ctx.strokeRect(obj.x + 2, obj.y + 5, obj.width - 4, obj.height - 10);
+            ctx.strokeRect(
+              obj.x + 2,
+              obj.y + 5,
+              obj.width - 4,
+              obj.height - 10
+            );
             // Top/bottom
             ctx.fillStyle = "#D1D5DB";
             ctx.fillRect(obj.x, obj.y + 3, obj.width, 4);
             ctx.fillRect(obj.x, obj.y + obj.height - 7, obj.width, 4);
           }
-          
+
           ctx.restore();
         }
       });
 
       // Update bad citizens (including spawning)
       const player = playerRef.current;
-      
+
       // Clear sword cooldown if expired
       if (player.swordCooldown && Date.now() > player.swordCooldown) {
         player.swordCooldown = undefined;
       }
-      
-      if (keysPressed.current.has("arrowleft") || keysPressed.current.has("a")) {
+
+      if (
+        keysPressed.current.has("arrowleft") ||
+        keysPressed.current.has("a")
+      ) {
         player.x = Math.max(0, player.x - player.speed);
         player.direction = "left";
       }
-      if (keysPressed.current.has("arrowright") || keysPressed.current.has("d")) {
-        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+      if (
+        keysPressed.current.has("arrowright") ||
+        keysPressed.current.has("d")
+      ) {
+        player.x = Math.min(
+          canvas.width - player.width,
+          player.x + player.speed
+        );
         player.direction = "right";
       }
       if (keysPressed.current.has("arrowup") || keysPressed.current.has("w")) {
         player.y = Math.max(0, player.y - player.speed);
       }
-      if (keysPressed.current.has("arrowdown") || keysPressed.current.has("s")) {
-        player.y = Math.min(canvas.height - player.height - 120, player.y + player.speed);
+      if (
+        keysPressed.current.has("arrowdown") ||
+        keysPressed.current.has("s")
+      ) {
+        player.y = Math.min(
+          canvas.height - player.height - 120,
+          player.y + player.speed
+        );
       }
-      
+
       // Spawn bad citizens: 2 active max, 10 total per scene
       const now = Date.now();
-      const activeCitizens = objectsRef.current.filter(o => o.type === "bad-citizen" && o.alive).length;
-      if (now >= nextBadSpawnAtRef.current && activeCitizens < 2 && badCitizensSpawnedRef.current < 10) {
-        const sources = objectsRef.current.filter(o => o.type === "building" || o.type === "car" || o.type === "bus");
+      const activeCitizens = objectsRef.current.filter(
+        (o) => o.type === "bad-citizen" && o.alive
+      ).length;
+      if (
+        now >= nextBadSpawnAtRef.current &&
+        activeCitizens < 2 &&
+        badCitizensSpawnedRef.current < 10
+      ) {
+        const sources = objectsRef.current.filter(
+          (o) => o.type === "building" || o.type === "car" || o.type === "bus"
+        );
         if (sources.length > 0) {
           const source = sources[Math.floor(Math.random() * sources.length)];
           let spawnX = source.x + source.width / 2 - 10;
           let spawnY = source.y + source.height - 5;
           if (source.type === "car" || source.type === "bus") {
             const side = Math.random() > 0.5 ? "left" : "right";
-            spawnX = side === "left" ? source.x - 10 : source.x + source.width + 10;
+            spawnX =
+              side === "left" ? source.x - 10 : source.x + source.width + 10;
             spawnY = source.y + source.height - 20;
           }
-          
+
           objectsRef.current.push({
             x: spawnX,
             y: spawnY,
@@ -955,9 +1231,9 @@ const GamePlay = () => {
             type: "bad-citizen",
             direction: Math.random() > 0.5 ? "right" : "left",
             targetX: spawnX + (Math.random() * 200 - 100),
-            targetY: spawnY - 50 + (Math.random() * 100),
+            targetY: spawnY - 50 + Math.random() * 100,
             alive: true,
-            variant: badCitizensSpawnedRef.current % 2
+            variant: badCitizensSpawnedRef.current % 2,
           });
           badCitizensSpawnedRef.current += 1;
           nextBadSpawnAtRef.current = now + 3000;
@@ -965,7 +1241,7 @@ const GamePlay = () => {
           nextBadSpawnAtRef.current = now + 1000;
         }
       }
-      
+
       // Update bad citizens movement and behavior
       objectsRef.current.forEach((obj) => {
         if (obj.type === "bad-citizen" && obj.alive) {
@@ -974,7 +1250,7 @@ const GamePlay = () => {
             const dx = obj.targetX - obj.x;
             const dy = obj.targetY - obj.y;
             const distance = Math.hypot(dx, dy);
-            
+
             if (distance < 10) {
               // Reached target, pick new random target
               obj.targetX = Math.random() * (canvas.width - 200) + 100;
@@ -987,32 +1263,42 @@ const GamePlay = () => {
               obj.direction = dx > 0 ? "right" : "left";
             }
           }
-          
+
           // Random pollution behavior (every ~3 seconds per citizen)
           if (Math.random() < 0.005) {
             if (gameMode === "cleanup") {
               // Throw trash back - find a collected trash nearby
               const collectedTrash = objectsRef.current.filter(
-                item => (item.type === "trash" || item.type === "bottle" || item.type === "can") && 
-                        item.collected &&
-                        Math.hypot(item.x - obj.x, item.y - obj.y) < 200
+                (item) =>
+                  (item.type === "trash" ||
+                    item.type === "bottle" ||
+                    item.type === "can") &&
+                  item.collected &&
+                  Math.hypot(item.x - obj.x, item.y - obj.y) < 200
               );
-              
+
               if (collectedTrash.length > 0) {
-                const randomTrash = collectedTrash[Math.floor(Math.random() * collectedTrash.length)];
+                const randomTrash =
+                  collectedTrash[
+                    Math.floor(Math.random() * collectedTrash.length)
+                  ];
                 randomTrash.collected = false;
-                toast.error("Bad citizen threw trash back!", { duration: 1000 });
+                toast.error("Bad citizen threw trash back!", {
+                  duration: 1000,
+                });
               }
             } else {
               // Cut down planted trees - find a planted tree nearby
               const plantedTrees = objectsRef.current.filter(
-                item => item.type === "plant-spot" && 
-                        item.planted &&
-                        Math.hypot(item.x - obj.x, item.y - obj.y) < 200
+                (item) =>
+                  item.type === "plant-spot" &&
+                  item.planted &&
+                  Math.hypot(item.x - obj.x, item.y - obj.y) < 200
               );
-              
+
               if (plantedTrees.length > 0) {
-                const randomTree = plantedTrees[Math.floor(Math.random() * plantedTrees.length)];
+                const randomTree =
+                  plantedTrees[Math.floor(Math.random() * plantedTrees.length)];
                 randomTree.planted = false;
                 toast.error("Bad citizen cut down a tree!", { duration: 1000 });
               }
@@ -1020,35 +1306,43 @@ const GamePlay = () => {
           }
         }
       });
-      
+
       // Check sword collision with bad citizens
       if (player.swordActive) {
         const swordReach = 50;
-        const swordX = player.direction === "right" ? player.x + player.width : player.x - swordReach;
+        const swordX =
+          player.direction === "right"
+            ? player.x + player.width
+            : player.x - swordReach;
         const swordY = player.y + player.height / 2 - 10;
-        
+
         objectsRef.current.forEach((obj) => {
           if (obj.type === "bad-citizen" && obj.alive) {
             // Check if sword hits citizen
-            const hit = swordX < obj.x + obj.width &&
-                       swordX + swordReach > obj.x &&
-                       swordY < obj.y + obj.height &&
-                       swordY + 20 > obj.y;
-            
+            const hit =
+              swordX < obj.x + obj.width &&
+              swordX + swordReach > obj.x &&
+              swordY < obj.y + obj.height &&
+              swordY + 20 > obj.y;
+
             if (hit) {
               obj.alive = false;
               toast.success("Bad citizen eliminated! 🗡️", { duration: 1000 });
-              playGameSound('collect');
+              playGameSound("collect");
             }
           }
         });
       }
 
       // Draw player character with better design (optimized)
-      const drawCharacter = (char: Player, color: string, isPlayer: boolean) => {
+      const drawCharacter = (
+        char: Player,
+        color: string,
+        isPlayer: boolean
+      ) => {
         // Reduce shadow operations for performance
         ctx.save();
-        
+
         // Add dancing animation for winner when game is over
         let bounceOffset = 0;
         let armWave = 0;
@@ -1060,100 +1354,156 @@ const GamePlay = () => {
             armWave = Math.sin(time * 2) * 15; // Wave arms
           }
         }
-        
+
         // Body (simplified for performance)
         ctx.fillStyle = color;
-        ctx.fillRect(char.x, char.y + 20 + bounceOffset, char.width, char.height - 20);
+        ctx.fillRect(
+          char.x,
+          char.y + 20 + bounceOffset,
+          char.width,
+          char.height - 20
+        );
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 2;
-        ctx.strokeRect(char.x, char.y + 20 + bounceOffset, char.width, char.height - 20);
-        
+        ctx.strokeRect(
+          char.x,
+          char.y + 20 + bounceOffset,
+          char.width,
+          char.height - 20
+        );
+
         // Head
         ctx.fillStyle = "#FFE4B5";
         ctx.beginPath();
-        ctx.arc(char.x + char.width / 2, char.y + 15 + bounceOffset, 15, 0, Math.PI * 2);
+        ctx.arc(
+          char.x + char.width / 2,
+          char.y + 15 + bounceOffset,
+          15,
+          0,
+          Math.PI * 2
+        );
         ctx.fill();
         ctx.stroke();
-        
+
         // Eyes
         ctx.fillStyle = "#000";
         ctx.beginPath();
-        ctx.arc(char.x + char.width / 2 - 5, char.y + 12 + bounceOffset, 2, 0, Math.PI * 2);
-        ctx.arc(char.x + char.width / 2 + 5, char.y + 12 + bounceOffset, 2, 0, Math.PI * 2);
+        ctx.arc(
+          char.x + char.width / 2 - 5,
+          char.y + 12 + bounceOffset,
+          2,
+          0,
+          Math.PI * 2
+        );
+        ctx.arc(
+          char.x + char.width / 2 + 5,
+          char.y + 12 + bounceOffset,
+          2,
+          0,
+          Math.PI * 2
+        );
         ctx.fill();
-        
+
         // Smile (bigger if winner)
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 1;
         ctx.beginPath();
-        const smileRadius = gameOver && ((isPlayer && playerWon) || (!isPlayer && !playerWon)) ? 10 : 8;
-        ctx.arc(char.x + char.width / 2, char.y + 15 + bounceOffset, smileRadius, 0, Math.PI, false);
+        const smileRadius =
+          gameOver && ((isPlayer && playerWon) || (!isPlayer && !playerWon))
+            ? 10
+            : 8;
+        ctx.arc(
+          char.x + char.width / 2,
+          char.y + 15 + bounceOffset,
+          smileRadius,
+          0,
+          Math.PI,
+          false
+        );
         ctx.stroke();
-        
+
         // Arms (with wave animation for winner)
         ctx.fillStyle = color;
         ctx.fillRect(char.x - 8, char.y + 30 + bounceOffset + armWave, 8, 20);
-        ctx.fillRect(char.x + char.width, char.y + 30 + bounceOffset - armWave, 8, 20);
+        ctx.fillRect(
+          char.x + char.width,
+          char.y + 30 + bounceOffset - armWave,
+          8,
+          20
+        );
         ctx.strokeRect(char.x - 8, char.y + 30 + bounceOffset + armWave, 8, 20);
-        ctx.strokeRect(char.x + char.width, char.y + 30 + bounceOffset - armWave, 8, 20);
-        
+        ctx.strokeRect(
+          char.x + char.width,
+          char.y + 30 + bounceOffset - armWave,
+          8,
+          20
+        );
+
         // Score label
         ctx.fillStyle = "#FFF";
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 3;
         ctx.font = "bold 14px Arial";
         ctx.textAlign = "center";
-        ctx.strokeText(char.score.toString(), char.x + char.width / 2, char.y - 5 + bounceOffset);
-        ctx.fillText(char.score.toString(), char.x + char.width / 2, char.y - 5 + bounceOffset);
-        
+        ctx.strokeText(
+          char.score.toString(),
+          char.x + char.width / 2,
+          char.y - 5 + bounceOffset
+        );
+        ctx.fillText(
+          char.score.toString(),
+          char.x + char.width / 2,
+          char.y - 5 + bounceOffset
+        );
+
         ctx.restore();
       };
 
       drawCharacter(player, "#00CED1", true);
-      
+
       // Draw bad citizens
       objectsRef.current.forEach((obj) => {
         if (obj.type === "bad-citizen" && obj.alive) {
           ctx.save();
-          
+
           // Smaller character for bad citizens
           const citizenColor = obj.variant === 0 ? "#8B4513" : "#696969";
-          
+
           // Body
           ctx.fillStyle = citizenColor;
           ctx.fillRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
           ctx.strokeStyle = "#000";
           ctx.lineWidth = 2;
           ctx.strokeRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
-          
+
           // Head
           ctx.fillStyle = "#FFE4B5";
           ctx.beginPath();
           ctx.arc(obj.x + obj.width / 2, obj.y + 10, 10, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
-          
+
           // Angry eyes
           ctx.fillStyle = "#000";
           ctx.beginPath();
           ctx.arc(obj.x + obj.width / 2 - 4, obj.y + 8, 2, 0, Math.PI * 2);
           ctx.arc(obj.x + obj.width / 2 + 4, obj.y + 8, 2, 0, Math.PI * 2);
           ctx.fill();
-          
+
           // Frown
           ctx.strokeStyle = "#000";
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.arc(obj.x + obj.width / 2, obj.y + 14, 5, Math.PI, 0, true);
           ctx.stroke();
-          
+
           // Arms
           ctx.fillStyle = citizenColor;
           ctx.fillRect(obj.x - 6, obj.y + 22, 6, 15);
           ctx.fillRect(obj.x + obj.width, obj.y + 22, 6, 15);
           ctx.strokeRect(obj.x - 6, obj.y + 22, 6, 15);
           ctx.strokeRect(obj.x + obj.width, obj.y + 22, 6, 15);
-          
+
           // "Bad" label
           ctx.fillStyle = "#FF0000";
           ctx.strokeStyle = "#000";
@@ -1162,24 +1512,32 @@ const GamePlay = () => {
           ctx.textAlign = "center";
           ctx.strokeText("BAD", obj.x + obj.width / 2, obj.y - 3);
           ctx.fillText("BAD", obj.x + obj.width / 2, obj.y - 3);
-          
+
           ctx.restore();
         }
       });
-      
+
       // Draw sword when active
       if (player.swordActive) {
         ctx.save();
         const swordReach = 50;
-        const swordX = player.direction === "right" ? player.x + player.width : player.x - swordReach;
+        const swordX =
+          player.direction === "right"
+            ? player.x + player.width
+            : player.x - swordReach;
         const swordY = player.y + player.height / 2 - 10;
-        
+
         // Sword blade
-        const swordGradient = ctx.createLinearGradient(swordX, swordY, swordX + swordReach, swordY);
+        const swordGradient = ctx.createLinearGradient(
+          swordX,
+          swordY,
+          swordX + swordReach,
+          swordY
+        );
         swordGradient.addColorStop(0, "#C0C0C0");
         swordGradient.addColorStop(1, "#E8E8E8");
         ctx.fillStyle = swordGradient;
-        
+
         if (player.direction === "right") {
           // Sword pointing right
           ctx.beginPath();
@@ -1207,23 +1565,27 @@ const GamePlay = () => {
           ctx.lineWidth = 2;
           ctx.stroke();
         }
-        
+
         // Sword glow effect
         ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
         ctx.shadowBlur = 10;
-        
+
         ctx.restore();
       }
 
       // Check collision for both player and opponent
       objectsRef.current.forEach((obj) => {
-        const isTargetType = gameMode === "cleanup" 
-          ? (obj.type === "trash" || obj.type === "bottle" || obj.type === "can") && !obj.collected
-          : obj.type === "plant-spot" && !obj.planted;
+        const isTargetType =
+          gameMode === "cleanup"
+            ? (obj.type === "trash" ||
+                obj.type === "bottle" ||
+                obj.type === "can") &&
+              !obj.collected
+            : obj.type === "plant-spot" && !obj.planted;
 
         if (isTargetType) {
           // Player collision
-          const playerColliding = 
+          const playerColliding =
             player.x < obj.x + obj.width &&
             player.x + player.width > obj.x &&
             player.y < obj.y + obj.height &&
@@ -1233,18 +1595,20 @@ const GamePlay = () => {
             if (gameMode === "cleanup") {
               // Cleanup: need to stand for 500ms
               const now = Date.now();
-              
+
               if (standingOnSpotRef.current.spot === obj) {
                 // Still standing on same spot
-                if (standingOnSpotRef.current.startTime && 
-                    now - standingOnSpotRef.current.startTime >= 500) {
+                if (
+                  standingOnSpotRef.current.startTime &&
+                  now - standingOnSpotRef.current.startTime >= 500
+                ) {
                   // 500ms elapsed - collect the trash!
                   obj.collected = true;
                   toast.success("+1 Trash!", { duration: 800 });
                   player.score += 1;
                   setScore((prev) => prev + 1);
-                  playGameSound('collect');
-                  
+                  playGameSound("collect");
+
                   // Reset standing state
                   standingOnSpotRef.current = { spot: null, startTime: null };
                 }
@@ -1255,18 +1619,20 @@ const GamePlay = () => {
             } else {
               // Tree planting: need to stand for 500ms
               const now = Date.now();
-              
+
               if (standingOnSpotRef.current.spot === obj) {
                 // Still standing on same spot
-                if (standingOnSpotRef.current.startTime && 
-                    now - standingOnSpotRef.current.startTime >= 500) {
+                if (
+                  standingOnSpotRef.current.startTime &&
+                  now - standingOnSpotRef.current.startTime >= 500
+                ) {
                   // 500ms elapsed - plant the tree!
                   obj.planted = true;
                   toast.success("+1 Tree Planted! 🌳", { duration: 800 });
                   player.score += 1;
                   setScore((prev) => prev + 1);
-                  playGameSound('collect');
-                  
+                  playGameSound("collect");
+
                   // Reset standing state
                   standingOnSpotRef.current = { spot: null, startTime: null };
                 }
@@ -1306,7 +1672,7 @@ const GamePlay = () => {
     setTimeLeft(settings.timeLimit);
     setGameOver(false);
     setPlayerWon(false);
-    
+
     playerRef.current = {
       x: 100,
       y: window.innerHeight / 2,
@@ -1316,15 +1682,15 @@ const GamePlay = () => {
       direction: "right",
       score: 0,
       swordActive: false,
-      swordCooldown: undefined
+      swordCooldown: undefined,
     };
-    
+
     opponentTargetRef.current = null;
-    
+
     // Reset spawn system
     badCitizensSpawnedRef.current = 0;
     nextBadSpawnAtRef.current = 0;
-    
+
     // Reset all collectible/plantable items and bad citizens
     objectsRef.current.forEach((obj) => {
       if (obj.type === "trash" || obj.type === "bottle" || obj.type === "can") {
@@ -1350,8 +1716,8 @@ const GamePlay = () => {
       updateProfile({
         accountId,
         updates: {
-          total_xp: accumulatedXP
-        }
+          total_xp: accumulatedXP,
+        },
       });
       toast.success(`Claimed ${accumulatedXP} XP!`);
     }
@@ -1371,15 +1737,18 @@ const GamePlay = () => {
   const handleWatchAd = () => {
     // Award bonus XP for watching ad and progress to next scene
     const adBonusXP = 50; // Bonus XP for watching ad
-    setAccumulatedXP(prev => prev + adBonusXP);
-    
-    toast.success(`+${adBonusXP} XP for watching ad! Continuing to next scene...`, {
-      duration: 3000,
-    });
-    
+    setAccumulatedXP((prev) => prev + adBonusXP);
+
+    toast.success(
+      `+${adBonusXP} XP for watching ad! Continuing to next scene...`,
+      {
+        duration: 3000,
+      }
+    );
+
     // Progress to next scene
     setShowRewardedAd(false);
-    setCurrentScene(prev => prev + 1);
+    setCurrentScene((prev) => prev + 1);
     setGameOver(false);
     setGameStarted(false);
     setShowInstructor(true);
@@ -1391,8 +1760,8 @@ const GamePlay = () => {
       updateProfile({
         accountId,
         updates: {
-          total_xp: accumulatedXP
-        }
+          total_xp: accumulatedXP,
+        },
       });
       toast.success(`Claimed ${accumulatedXP} XP!`);
     }
@@ -1401,7 +1770,7 @@ const GamePlay = () => {
 
   const handleNextScene = () => {
     // Continue to next scene after winning
-    setCurrentScene(prev => prev + 1);
+    setCurrentScene((prev) => prev + 1);
     setGameOver(false);
     setGameStarted(false);
     setShowInstructor(true);
@@ -1410,14 +1779,15 @@ const GamePlay = () => {
   const getCurrentInstructions = () => {
     // Use appropriate instructions based on game mode
     const sceneKey = currentScene > 3 ? 3 : currentScene;
-    const instructions = gameMode === "planting" 
-      ? TREE_PLANTING_INSTRUCTIONS 
-      : CLEANUP_INSTRUCTIONS;
+    const instructions =
+      gameMode === "planting"
+        ? TREE_PLANTING_INSTRUCTIONS
+        : CLEANUP_INSTRUCTIONS;
     return instructions[sceneKey] || instructions[1];
   };
 
   const handlePauseToggle = () => {
-    setIsPaused(prev => !prev);
+    setIsPaused((prev) => !prev);
   };
 
   const handleQuitGame = () => {
@@ -1433,7 +1803,8 @@ const GamePlay = () => {
           <Monitor className="w-16 h-16 mx-auto mb-4 text-primary" />
           <h2 className="text-2xl font-bold mb-4">Desktop Only</h2>
           <p className="text-muted-foreground mb-6">
-            The game requires a larger screen for the best experience. Please play on a desktop or laptop computer.
+            The game requires a larger screen for the best experience. Please
+            play on a desktop or laptop computer.
           </p>
           <Button onClick={() => navigate("/app/1")} className="w-full">
             Back to Dashboard
@@ -1443,7 +1814,6 @@ const GamePlay = () => {
     );
   }
 
-
   return (
     <div className="fixed inset-0 bg-background flex flex-col overflow-hidden">
       {/* Header with score and time */}
@@ -1452,29 +1822,35 @@ const GamePlay = () => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Exit
         </Button>
-        
+
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3 bg-primary/10 px-4 py-2 rounded-full">
             <span className="text-sm font-medium">You</span>
             <Trophy className="w-5 h-5 text-accent" />
             <span className="font-bold text-xl">{score}</span>
           </div>
-          
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-full">
-              <Zap className="w-5 h-5 text-primary" />
-              <span className="font-bold text-lg">{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
-            </div>
-            <Badge variant="secondary" className="mt-1 text-xs">Scene #{currentScene}</Badge>
+
+          <Badge variant="secondary" className="mt-1 text-xs">
+            Scene #{currentScene}
+          </Badge>
+
+          <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-full">
+            <Zap className="w-5 h-5 text-primary" />
+            <span className="font-bold text-lg">
+              {Math.floor(timeLeft / 60)}:
+              {(timeLeft % 60).toString().padStart(2, "0")}
+            </span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="capitalize">{selectedLevel}</Badge>
+          <Badge variant="outline" className="capitalize">
+            {selectedLevel}
+          </Badge>
           {accumulatedXP > 0 && (
             <Badge className="bg-accent text-white">{accumulatedXP} XP</Badge>
           )}
-          
+
           {/* Game Controls */}
           {gameStarted && !gameOver && (
             <>
@@ -1510,7 +1886,7 @@ const GamePlay = () => {
           height={window.innerHeight - 60}
           className="w-full h-full"
         />
-        
+
         {/* Round Location Overlay - Bottom Right */}
         {roundMetadata && gameStarted && !gameOver && (
           <div className="absolute bottom-6 right-6 z-10 max-w-xs animate-fade-in">
@@ -1538,21 +1914,25 @@ const GamePlay = () => {
             </Card>
           </div>
         )}
-          
+
         {!gameStarted && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <Card className="p-8 text-center max-w-lg">
               <h2 className="text-4xl font-bold mb-4 text-gradient-gaming">
-                {gameMode === "cleanup" ? "Trash Cleanup Race!" : "Tree Planting Challenge!"}
+                {gameMode === "cleanup"
+                  ? "Trash Cleanup Race!"
+                  : "Tree Planting Challenge!"}
               </h2>
               <p className="text-muted-foreground mb-6">
-                {gameMode === "cleanup" 
+                {gameMode === "cleanup"
                   ? "Race against the AI to collect more trash! Use arrow keys or WASD to move. Collect more trash than your opponent to win bonus XP!"
                   : "Race against the AI to plant more trees! Use arrow keys or WASD to move. Plant more trees than your opponent to win bonus XP!"}
               </p>
-              
+
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-3">Select Difficulty:</label>
+                <label className="block text-sm font-medium mb-3">
+                  Select Difficulty:
+                </label>
                 <div className="flex gap-3 justify-center">
                   <Button
                     variant={selectedLevel === "easy" ? "default" : "outline"}
@@ -1577,7 +1957,7 @@ const GamePlay = () => {
                   </Button>
                 </div>
               </div>
-              
+
               <Button onClick={startGame} size="lg" className="gap-2 w-full">
                 <Zap className="w-5 h-5" />
                 Start Game
@@ -1592,7 +1972,9 @@ const GamePlay = () => {
               {playerWon ? (
                 <>
                   <Crown className="w-20 h-20 mx-auto mb-4 text-yellow-500 animate-bounce" />
-                  <h2 className="text-4xl font-bold mb-4 text-gradient-gaming">Victory!</h2>
+                  <h2 className="text-4xl font-bold mb-4 text-gradient-gaming">
+                    Victory!
+                  </h2>
                   <p className="text-xl mb-4">You defeated the AI opponent!</p>
                   <p className="text-muted-foreground mb-4">
                     Scene #{currentScene} Complete! 🎉
@@ -1601,43 +1983,65 @@ const GamePlay = () => {
               ) : (
                 <>
                   <div className="w-20 h-20 mx-auto mb-4 text-6xl">😢</div>
-                  <h2 className="text-4xl font-bold mb-4 text-destructive">Mission Failed!</h2>
-                  <p className="text-xl mb-4">The AI collected more this time!</p>
+                  <h2 className="text-4xl font-bold mb-4 text-destructive">
+                    Mission Failed!
+                  </h2>
+                  <p className="text-xl mb-4">
+                    The AI collected more this time!
+                  </p>
                   <p className="text-muted-foreground mb-4">
                     Don't give up! Watch an ad to continue or claim your XP.
                   </p>
                 </>
               )}
-              
+
               <div className="mb-6 p-4 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">Your Score</p>
-                <p className="text-3xl font-bold text-accent">{playerRef.current.score}</p>
+                <p className="text-3xl font-bold text-accent">
+                  {playerRef.current.score}
+                </p>
               </div>
-              
+
               {playerWon ? (
                 <>
                   <div className="mb-6 p-4 bg-primary/10 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Scene XP</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Scene XP
+                    </p>
                     <p className="text-2xl font-bold text-primary">
-                      +{playerRef.current.score * 2 + Math.floor(playerRef.current.score * 2 * 0.5)} XP
+                      +
+                      {playerRef.current.score * 2 +
+                        Math.floor(playerRef.current.score * 2 * 0.5)}{" "}
+                      XP
                     </p>
                     <p className="text-sm text-accent mt-1">
                       (Includes 50% win bonus!)
                     </p>
                   </div>
-                  
+
                   <div className="mb-6 p-4 bg-accent/10 rounded-lg border border-accent/30">
-                    <p className="text-sm text-muted-foreground mb-1">Total Accumulated XP</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Total Accumulated XP
+                    </p>
                     <p className="text-3xl font-bold text-accent">
                       {accumulatedXP} XP
                     </p>
                   </div>
-                  
+
                   <div className="flex gap-4">
-                    <Button onClick={handleNextScene} size="lg" className="flex-1 bg-gradient-primary">
+                    <Button
+                      onClick={handleNextScene}
+                      size="lg"
+                      className="flex-1 bg-gradient-primary"
+                    >
                       Next Scene
                     </Button>
-                    <Button onClick={handleClaimXP} size="lg" variant="outline" className="flex-1">
+                    <Button
+                      onClick={handleClaimXP}
+                      size="lg"
+                      variant="outline"
+                      className="flex-1"
+                    >
                       Claim & Exit
                     </Button>
                   </div>
@@ -1646,18 +2050,29 @@ const GamePlay = () => {
                 <>
                   {accumulatedXP > 0 && (
                     <div className="mb-6 p-4 bg-accent/10 rounded-lg border border-accent/30">
-                      <p className="text-sm text-muted-foreground mb-1">Accumulated XP</p>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Accumulated XP
+                      </p>
                       <p className="text-2xl font-bold text-accent">
                         {accumulatedXP} XP
                       </p>
                     </div>
                   )}
-                  
+
                   <div className="flex gap-4">
-                    <Button onClick={() => setShowRewardedAd(true)} size="lg" className="flex-1 bg-gradient-primary">
+                    <Button
+                      onClick={() => setShowRewardedAd(true)}
+                      size="lg"
+                      className="flex-1 bg-gradient-primary"
+                    >
                       Watch Ad to Continue
                     </Button>
-                    <Button onClick={handleClaimXP} size="lg" variant="outline" className="flex-1">
+                    <Button
+                      onClick={handleClaimXP}
+                      size="lg"
+                      variant="outline"
+                      className="flex-1"
+                    >
                       Claim XP & Exit
                     </Button>
                   </div>
@@ -1666,7 +2081,7 @@ const GamePlay = () => {
             </Card>
           </div>
         )}
-        
+
         {/* Pause Overlay */}
         {isPaused && gameStarted && !gameOver && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-20">
@@ -1684,7 +2099,7 @@ const GamePlay = () => {
           </div>
         )}
       </div>
-      
+
       {/* Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="sm:max-w-md">
@@ -1694,7 +2109,7 @@ const GamePlay = () => {
               Game Settings
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-4">
             {/* Sound Toggle */}
             <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -1731,11 +2146,7 @@ const GamePlay = () => {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleQuitGame}
-              >
+              <Button variant="destructive" size="sm" onClick={handleQuitGame}>
                 Quit
               </Button>
             </div>
@@ -1773,24 +2184,24 @@ const GamePlay = () => {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {/* Instructor Dialog */}
-      <InstructorDialog 
+      <InstructorDialog
         open={showInstructor && !gameStarted}
         instructions={getCurrentInstructions()}
         sceneNumber={currentScene}
         onComplete={handleInstructorComplete}
         onExit={handleExitClick}
       />
-      
+
       {/* Rewarded Ad Dialog (shown on loss) */}
-      <RewardedAdDialog 
+      <RewardedAdDialog
         open={showRewardedAd}
         onWatchAd={handleWatchAd}
         onClaimXP={handleClaimXP}
         accumulatedXP={accumulatedXP}
       />
-      
+
       {/* Exit Confirmation Dialog */}
       <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
         <DialogContent className="sm:max-w-md">
@@ -1800,17 +2211,19 @@ const GamePlay = () => {
               Exit Game?
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="py-4">
             <p className="text-muted-foreground mb-4">
-              {gameStarted && !gameOver 
+              {gameStarted && !gameOver
                 ? "Are you sure you want to exit? Your current game progress will be lost."
                 : "Are you sure you want to exit?"}
             </p>
-            
+
             {accumulatedXP > 0 && (
               <div className="p-4 bg-accent/10 rounded-lg border border-accent/30 mb-4">
-                <p className="text-sm text-muted-foreground mb-1">Accumulated XP</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Accumulated XP
+                </p>
                 <p className="text-2xl font-bold text-accent">
                   {accumulatedXP} XP
                 </p>
