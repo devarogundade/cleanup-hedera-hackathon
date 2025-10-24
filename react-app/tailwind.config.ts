@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -14,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        grotesk: ['Space Grotesk', 'sans-serif'],
+        grotesk: ["Space Grotesk", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,20 +56,32 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        gaming: {
+          DEFAULT: "hsl(var(--gaming))",
+          dark: "hsl(var(--gaming-dark))",
+          darker: "hsl(var(--gaming-darker))",
+          accent: "hsl(var(--gaming-accent))",
+        },
       },
-        backgroundImage: {
-          'gradient-primary': 'var(--gradient-primary)',
-          'gradient-card': 'var(--gradient-card)',
-          'gradient-hero': 'var(--gradient-hero)',
-          'gradient-accent': 'var(--gradient-accent)',
-          'gradient-gaming': 'var(--gradient-gaming)',
-        },
-        boxShadow: {
-          'glow': 'var(--shadow-glow)',
-          'card': 'var(--shadow-card)',
-          'accent': 'var(--shadow-accent)',
-          'gaming': 'var(--shadow-gaming)',
-        },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-secondary": "var(--gradient-secondary)",
+        "gradient-card": "var(--gradient-card)",
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-accent": "var(--gradient-accent)",
+        "gradient-gaming": "var(--gradient-gaming)",
+        "gradient-gaming-subtle": "var(--gradient-gaming-subtle)",
+      },
+      boxShadow: {
+        glow: "var(--shadow-glow)",
+        "glow-accent": "var(--shadow-glow-accent)",
+        card: "var(--shadow-card)",
+        accent: "var(--shadow-accent)",
+        gaming: "var(--shadow-gaming)",
+      },
+      backdropBlur: {
+        xs: "2px",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -90,79 +107,87 @@ export default {
         "fade-in": {
           "0%": {
             opacity: "0",
-            transform: "translateY(10px)"
+            transform: "translateY(10px)",
           },
           "100%": {
             opacity: "1",
-            transform: "translateY(0)"
-          }
+            transform: "translateY(0)",
+          },
         },
         "slide-up": {
           "0%": {
             opacity: "0",
-            transform: "translateY(20px)"
+            transform: "translateY(20px)",
           },
           "100%": {
             opacity: "1",
-            transform: "translateY(0)"
-          }
+            transform: "translateY(0)",
+          },
         },
         "slide-in": {
           "0%": {
             opacity: "0",
-            transform: "translateX(-20px)"
+            transform: "translateX(-20px)",
           },
           "100%": {
             opacity: "1",
-            transform: "translateX(0)"
-          }
+            transform: "translateX(0)",
+          },
         },
         "bounce-in": {
           "0%": {
             opacity: "0",
-            transform: "scale(0.8)"
+            transform: "scale(0.8)",
           },
           "50%": {
-            transform: "scale(1.05)"
+            transform: "scale(1.05)",
           },
           "100%": {
             opacity: "1",
-            transform: "scale(1)"
-          }
+            transform: "scale(1)",
+          },
         },
         "glow-pulse": {
           "0%, 100%": {
             opacity: "1",
-            boxShadow: "0 0 20px hsl(220 10% 60% / 0.2)"
+            boxShadow: "0 0 20px hsl(220 10% 60% / 0.2)",
           },
           "50%": {
             opacity: "0.95",
-            boxShadow: "0 0 40px hsl(220 10% 50% / 0.3)"
-          }
+            boxShadow: "0 0 40px hsl(220 10% 50% / 0.3)",
+          },
         },
-        "float": {
+        float: {
           "0%, 100%": {
-            transform: "translateY(0px)"
+            transform: "translateY(0px)",
           },
           "50%": {
-            transform: "translateY(-10px)"
-          }
+            transform: "translateY(-10px)",
+          },
         },
-        "shimmer": {
+        shimmer: {
           "0%": {
-            backgroundPosition: "-200% 0"
+            backgroundPosition: "-200% center",
           },
           "100%": {
-            backgroundPosition: "200% 0"
-          }
+            backgroundPosition: "200% center",
+          },
+        },
+        "pulse-glow": {
+          "0%, 100%": {
+            boxShadow: "0 0 20px hsl(180 100% 45% / 0.3)",
+          },
+          "50%": {
+            boxShadow: "0 0 40px hsl(180 100% 45% / 0.6)",
+          },
         },
         "spin-slow": {
           "0%": {
-            transform: "rotate(0deg)"
+            transform: "rotate(0deg)",
           },
           "100%": {
-            transform: "rotate(360deg)"
-          }
+            transform: "rotate(360deg)",
+          },
         },
       },
       animation: {
@@ -173,9 +198,10 @@ export default {
         "slide-in": "slide-in 0.5s ease-out",
         "bounce-in": "bounce-in 0.6s ease-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
-        "float": "float 3s ease-in-out infinite",
-        "shimmer": "shimmer 2s linear infinite",
+        float: "float 3s ease-in-out infinite",
+        shimmer: "shimmer 3s linear infinite",
         "spin-slow": "spin-slow 20s linear infinite",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
       },
     },
   },
