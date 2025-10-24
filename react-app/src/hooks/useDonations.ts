@@ -12,18 +12,16 @@ import {
   ContractExecuteTransaction,
   ContractFunctionParameters,
   ContractId,
-  EvmAddress,
   Hbar,
   TokenAssociateTransaction,
   TokenId,
-  TransactionReceipt,
 } from "@hashgraph/sdk";
 import { MintableFraction, RoundMetadata } from "@/types";
 import { ethers } from "ethers";
 import { APP_CONFIG } from "@/data/constants";
 import { PaystackService } from "@/services/paystackService";
 import { testnetClient } from "@/services/hederaclient";
-import TokenAssociation from "node_modules/@hashgraph/sdk/lib/token/TokenAssociation";
+import { useIPFS } from "./useIPFS";
 
 interface DonationParams {
   accountId: string;
@@ -38,6 +36,7 @@ interface DonationParams {
 
 export const useDonation = () => {
   const queryClient = useQueryClient();
+  const { upload } = useIPFS();
 
   return useMutation({
     mutationFn: async ({
@@ -184,34 +183,16 @@ export const useDonation = () => {
         // Prepare image base64
         const imageU8 = new Uint8Array(fraction.buffer.buffer as ArrayBuffer);
         const imageBase64 = toBase64(imageU8);
-        const imagePath = `round-${roundMetadata.id}/fraction-${fraction.position}.jpg`;
 
-        // Upload image via Edge Function (service role)
-        const { data: imageUpload, error: imageInvokeError } =
-          await supabase.functions.invoke("upload-to-storage", {
-            body: {
-              bucket: "cleanup",
-              path: imagePath,
-              base64: imageBase64,
-              contentType: "image/jpeg",
-            },
-          });
-        if (imageInvokeError || !(imageUpload as any)?.publicUrl) {
-          throw new Error(
-            `Failed to upload image: ${
-              imageInvokeError?.message || "no URL returned"
-            }`
-          );
-        }
-        const publicUrl = (imageUpload as any).publicUrl as string;
+        const { url: imageUrl, mime_type } = await upload(imageBase64);
 
         // Create NFT metadata
         const nftMetadata = {
           name: `${roundMetadata.location.name} - Fraction #${fraction.position}`,
           creator: roundMetadata.contractId,
           description: `Cleanup fraction at ${roundMetadata.location.name}`,
-          image: publicUrl,
-          type: "image/jpg",
+          image: imageUrl,
+          type: mime_type,
           format: "HIP412@2.0.0",
           properties: {
             row: fraction.row,
@@ -223,27 +204,10 @@ export const useDonation = () => {
         };
 
         // Upload metadata via Edge Function
-        const metadataPath = `round-${roundMetadata.id}/metadata-${fraction.position}.json`;
         const metadataJson = JSON.stringify(nftMetadata);
         const metadataBase64 = btoa(unescape(encodeURIComponent(metadataJson)));
 
-        const { data: metaUpload, error: metaInvokeError } =
-          await supabase.functions.invoke("upload-to-storage", {
-            body: {
-              bucket: "cleanup",
-              path: metadataPath,
-              base64: metadataBase64,
-              contentType: "application/json",
-            },
-          });
-        if (metaInvokeError || !(metaUpload as any)?.publicUrl) {
-          throw new Error(
-            `Failed to upload metadata: ${
-              metaInvokeError?.message || "no URL returned"
-            }`
-          );
-        }
-        const metadataUrl = (metaUpload as any).publicUrl as string;
+        const { url: metadataUrl } = await upload(metadataBase64);
 
         metadata.push(ethers.toUtf8Bytes(metadataUrl));
       }
