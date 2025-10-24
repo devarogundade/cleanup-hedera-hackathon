@@ -29,7 +29,8 @@ interface DonationPanelProps {
 const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
   const navigate = useNavigate();
   const { playSound } = useSettings();
-  const { mintableFractions, totalPrice, currency, setCurrency, accountId } = useApp();
+  const { mintableFractions, totalPrice, currency, setCurrency, accountId } =
+    useApp();
   const { data: profile } = useProfile(accountId || "");
   const { data: userTransactions } = useTransactions(accountId || undefined);
   const hasNeverDonated = !userTransactions || userTransactions.length === 0;
@@ -85,7 +86,9 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
     if (hasInsufficientBalance()) {
       toast({
         title: "Insufficient XP",
-        description: `You need ${(totalPrice * APP_CONFIG.HBAR_TO_XP_RATE).toFixed(0)} XP but only have ${profile?.total_xp || 0} XP`,
+        description: `You need ${(
+          totalPrice * APP_CONFIG.HBAR_TO_XP_RATE
+        ).toFixed(0)} XP but only have ${profile?.total_xp || 0} XP`,
         variant: "destructive",
       });
       playSound("error");
@@ -113,27 +116,14 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
             </p>
           </div>
 
-          {/* Game Unlock Message */}
-          {hasNeverDonated && (
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg animate-pulse">
-              <div className="flex items-start gap-3">
-                <Gamepad2 className="w-6 h-6 text-purple-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-foreground mb-1">🎮 Unlock Eco-Fighter Game!</p>
-                  <p className="text-xs text-muted-foreground">
-                    Make your first donation to unlock the endless mission-based game and start earning XP through gameplay!
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Currency Selection */}
-          <div className="mb-4 p-3 bg-secondary/50 rounded-lg">
+          <div className="mb-4 p-3 bg-secondary/10 rounded-lg">
             <p className="text-xs sm:text-sm font-medium mb-2">Currency</p>
             <Select
               value={currency}
-              onValueChange={(value) => setCurrency(value as "HBAR" | "NGN" | "XP")}
+              onValueChange={(value) =>
+                setCurrency(value as "HBAR" | "NGN" | "XP")
+              }
             >
               <SelectTrigger className="w-full bg-background">
                 <SelectValue>
@@ -181,15 +171,19 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
                 </SelectItem>
               </SelectContent>
             </Select>
-            
+
             {/* XP Balance Display */}
             {currency === APP_CONFIG.XP_CURRENCY && (
               <div className="mt-2 flex items-center justify-between p-2 bg-accent/10 rounded border border-accent/20">
-                <span className="text-xs text-muted-foreground">Your Balance:</span>
-                <span className="text-sm font-bold text-accent">{getUserBalance()} XP</span>
+                <span className="text-xs text-muted-foreground">
+                  Your Balance:
+                </span>
+                <span className="text-sm font-bold text-accent">
+                  {getUserBalance()} XP
+                </span>
               </div>
             )}
-            
+
             {/* Conversion Rate Info */}
             {currency === APP_CONFIG.XP_CURRENCY && (
               <div className="mt-2 text-xs text-muted-foreground text-center">
@@ -263,10 +257,18 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
         <Button
           variant="ghost"
           className="w-full text-sm sm:text-base h-11 sm:h-12 font-semibold transition-all hover:scale-[1.02] bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 text-white border-0 shadow-[0_0_20px_rgba(147,51,234,0.5)] hover:shadow-[0_0_35px_rgba(147,51,234,0.7)] animate-pulse disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={mintableFractions.length === 0 || roundEnded || hasInsufficientBalance()}
+          disabled={
+            mintableFractions.length === 0 ||
+            roundEnded ||
+            hasInsufficientBalance()
+          }
           onClick={handleDonateClick}
         >
-          {roundEnded ? "Round Ended" : hasInsufficientBalance() ? "Insufficient XP" : "✨ Donate Now ✨"}
+          {roundEnded
+            ? "Round Ended"
+            : hasInsufficientBalance()
+            ? "Insufficient XP"
+            : "✨ Donate Now ✨"}
         </Button>
 
         {roundEnded && (

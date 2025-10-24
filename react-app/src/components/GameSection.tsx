@@ -12,7 +12,7 @@ const GameSection = () => {
   const { currentRound } = useApp();
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-gaming via-gaming-dark to-gaming-darker border-gaming-accent/30 mb-6">
+    <Card className="p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30  mb-6">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-3">
@@ -20,11 +20,12 @@ const GameSection = () => {
               <Gamepad2 className="w-8 h-8 text-gaming-accent" />
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-gradient-gaming">
-              Trash Cleanup Challenge
+              Round {currentRound} Challenge
             </h2>
           </div>
           <p className="text-muted-foreground mb-4">
-            Race against AI to collect trash and earn bonus XP! Choose your difficulty level and compete for the top score.
+            Race against AI to collect trash and earn bonus XP! Choose your
+            difficulty level and compete for the top score.
           </p>
           <div className="flex gap-4 text-sm">
             <div className="flex items-center gap-2">
