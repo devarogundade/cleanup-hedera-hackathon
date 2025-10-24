@@ -14,24 +14,18 @@ const appMetadata = {
   url: "http://localhost:8080",
 };
 
-// Initialize HashConnect only on client side
-
 export const hc = new HashConnect(
   LedgerId.fromString(env),
-  "bfa190dbe93fcf30377b932b31129d05",
+  "ea885806212fff9318fe3849b17f8df5",
   appMetadata,
   true
 );
-
-console.log(hc);
 
 export const hcInitPromise = hc.init();
 
 export const getHashConnectInstance = (): HashConnect => {
   if (!hc) {
-    throw new Error(
-      "HashConnect not initialized. Make sure this is called on the client side."
-    );
+    throw new Error("HashConnect not initialized.");
   }
   return hc;
 };
@@ -43,9 +37,7 @@ export const getConnectedAccountIds = () => {
 
 export const getInitPromise = (): Promise<void> => {
   if (!hcInitPromise) {
-    throw new Error(
-      "HashConnect not initialized. Make sure this is called on the client side."
-    );
+    throw new Error("HashConnect not initialized.");
   }
   return hcInitPromise;
 };

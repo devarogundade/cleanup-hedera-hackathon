@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Heart, Users, Award, Wallet, Trophy, CheckCircle, Zap, Clock, Gift, ArrowRight, Shield, Globe } from "lucide-react";
+import { ArrowLeft, MapPin, Heart, Users, Award, Wallet, Trophy, CheckCircle, Zap, Clock, Gift, ArrowRight, Shield, Globe, Target, Sparkles, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/data/constants";
 const HowItWorks = () => {
@@ -163,6 +163,87 @@ const HowItWorks = () => {
                 </div>
               );
             })}
+          </div>
+
+          {/* Gameplay Section */}
+          <div className="mb-20 sm:mb-32">
+            <div className="text-center mb-12 sm:mb-16">
+              <Badge variant="outline" className="mb-6 px-4 py-2 border-primary/20">
+                <Trophy className="w-4 h-4 mr-2 text-primary" />
+                Play & Earn
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                Eco-Fighter Game
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Fight for the planet in an endless mission-based game
+              </p>
+            </div>
+            
+            <Card className="max-w-4xl mx-auto p-8 sm:p-12 bg-gradient-to-br from-card to-card/50 border-2 border-primary/20 shadow-xl">
+              <div className="space-y-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
+                        <Target className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold mb-2">Mission-Based Gameplay</h3>
+                        <p className="text-sm text-muted-foreground">Play through endless scenes with unique missions. Each scene challenges you to collect trash or plant trees faster than the AI opponent.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold mb-2">Earn XP & Level Up</h3>
+                        <p className="text-sm text-muted-foreground">Win missions to earn XP and accumulate rewards. Only winners get XP - lose and you'll need to continue or claim your current XP.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-border pt-8">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-primary" />
+                    How to Play
+                  </h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Use <strong>arrow keys</strong> or <strong>WASD</strong> to move your character</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Collect <strong>trash items</strong> or plant <strong>trees</strong> depending on mission type</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Beat the AI opponent by collecting more items before time runs out</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Win to progress to next scene and earn XP, or watch ads to continue after losing</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-primary/5 rounded-lg p-6 border border-primary/20">
+                  <div className="flex items-start gap-3">
+                    <Lock className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold mb-1">Unlock Requirement</p>
+                      <p className="text-sm text-muted-foreground">Make at least one donation to unlock the Eco-Fighter game and start earning XP through gameplay!</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
 
           {/* Features Grid */}

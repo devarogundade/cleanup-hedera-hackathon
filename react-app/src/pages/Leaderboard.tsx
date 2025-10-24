@@ -178,7 +178,7 @@ const Leaderboard = () => {
               </TableHeader>
               <TableBody>
                 {leaderboardLoading ? (
-                  <TableLoadingState rows={itemsPerPage} />
+                  <TableLoadingState rows={itemsPerPage} cols={7} />
                 ) : paginatedData.length === 0 ? (
                   <TableEmptyState
                     icon={Trophy}

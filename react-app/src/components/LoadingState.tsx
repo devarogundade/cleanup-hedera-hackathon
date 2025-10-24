@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { TableRow, TableCell } from "@/components/ui/table";
 
 interface LoadingStateProps {
   variant?: "skeleton" | "spinner" | "card";
@@ -64,17 +65,18 @@ export const StatsLoadingState = () => (
   </Card>
 );
 
-export const TableLoadingState = ({ rows = 5 }: { rows?: number }) => (
-  <div className="space-y-2">
+export const TableLoadingState = ({ rows = 5, cols = 7 }: { rows?: number; cols?: number }) => (
+  <>
     {Array.from({ length: rows }).map((_, i) => (
-      <div key={i} className="flex gap-4 p-4 border rounded-lg animate-shimmer bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-        <Skeleton className="h-10 w-24" />
-      </div>
+      <TableRow key={i}>
+        {Array.from({ length: cols }).map((_, j) => (
+          <TableCell key={j}>
+            <div className="animate-shimmer bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]">
+              <Skeleton className={j === 0 ? "h-10 w-10 rounded-full" : "h-4 w-full"} />
+            </div>
+          </TableCell>
+        ))}
+      </TableRow>
     ))}
-  </div>
+  </>
 );

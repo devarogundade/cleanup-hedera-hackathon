@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Fraction, MintableFraction, RoundMetadata } from "@/types";
+import { convertToMintableFraction } from "@/utils/fractionConverter";
 
 interface FractionDetailsDialogProps {
   fraction: Omit<Fraction, "id"> | null;
@@ -30,6 +31,32 @@ const FractionDetailsDialog = ({
 }: FractionDetailsDialogProps) => {
   const { playSound } = useSettings();
   const [nftPreview, setNftPreview] = useState<string>("");
+  const [isConverting, setIsConverting] = useState(false);
+
+  const handleDonate = async () => {
+    if (!onDonate || !fraction || !roundMetadata.imageUrl) return;
+    
+    setIsConverting(true);
+    try {
+      const gridConfig = {
+        rows: Math.sqrt(roundMetadata.totalFractions),
+        cols: Math.sqrt(roundMetadata.totalFractions),
+      };
+      
+      const mintable = await convertToMintableFraction(
+        fraction,
+        roundMetadata.imageUrl,
+        gridConfig
+      );
+      
+      onDonate(mintable);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to convert fraction:", error);
+    } finally {
+      setIsConverting(false);
+    }
+  };
 
   const isTreePlanting = roundMetadata?.type === "tree-planting";
 
@@ -180,11 +207,11 @@ const FractionDetailsDialog = ({
                   className="w-full h-12 bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 text-white border-0 shadow-[0_0_20px_rgba(147,51,234,0.5)] hover:shadow-[0_0_35px_rgba(147,51,234,0.7)] transition-all hover:scale-[1.02]"
                   onClick={() => {
                     playSound("success");
-                    // onDonate(); todo
-                    onOpenChange(false);
+                    handleDonate();
                   }}
+                  disabled={isConverting}
                 >
-                  {isTreePlanting
+                  {isConverting ? "Processing..." : isTreePlanting
                     ? "✨ Add to Tree Planting Fund"
                     : "✨ Add to Donation"}
                 </Button>

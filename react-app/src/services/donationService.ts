@@ -60,17 +60,28 @@ export class DonationService {
     const amountInHBAR =
       currency === APP_CONFIG.HBAR_CURRENCY
         ? amount
+        : currency === APP_CONFIG.XP_CURRENCY
+        ? amount / APP_CONFIG.HBAR_TO_XP_RATE
         : this.convertCurrency(amount, "NGN", "HBAR");
+        
     const amountInNGN =
       currency === APP_CONFIG.NGN_CURRENCY
         ? amount
+        : currency === APP_CONFIG.XP_CURRENCY
+        ? (amount / APP_CONFIG.HBAR_TO_XP_RATE) * APP_CONFIG.NGN_TO_HBAR_RATE
         : this.convertCurrency(amount, "HBAR", "NGN");
+        
+    const amountInXP =
+      currency === APP_CONFIG.XP_CURRENCY
+        ? amount
+        : amountInHBAR * APP_CONFIG.HBAR_TO_XP_RATE;
 
     return {
       amount,
       currency,
       amountInHBAR,
       amountInNGN,
+      amountInXP,
     };
   }
 

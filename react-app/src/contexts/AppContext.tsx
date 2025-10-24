@@ -4,6 +4,8 @@ import {
   useState,
   ReactNode,
   useEffect,
+  useMemo,
+  useCallback,
 } from "react";
 import { ProfileSetupDialog } from "@/components/ProfileSetupDialog";
 import useHashConnect from "@/hooks/useHashConnect";
@@ -23,7 +25,7 @@ interface AppContextType {
   accountId: string;
   isLoading: boolean;
   setConnected: (state: boolean) => void;
-  setAccountId: (vakue: string) => void;
+  setAccountId: (value: string) => void;
   setLoading: (state: boolean) => void;
 
   // Round management
@@ -32,16 +34,16 @@ interface AppContextType {
   setCurrentRound: (round: number) => void;
 
   // Donation state
-  mintableFractions: Omit<Fraction, "id">[];
-  setMintableFractions: (value: Omit<Fraction, "id">[]) => void;
+  mintableFractions: MintableFraction[];
+  setMintableFractions: (value: MintableFraction[]) => void;
   totalPrice: number;
   setTotalPrice: (price: number) => void;
-  selectedNGO: number | null;
-  setSelectedNGO: (ngo: number | null) => void;
+  selectedNGO: string | null;
+  setSelectedNGO: (ngo: string | null) => void;
 
   // Currency
-  currency: "HBAR" | "NGN";
-  setCurrency: (currency: "HBAR" | "NGN") => void;
+  currency: "HBAR" | "NGN" | "XP";
+  setCurrency: (currency: "HBAR" | "NGN" | "XP") => void;
 
   // Achievement
   achievement: Achievement | null;
@@ -72,11 +74,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [isLoading, setLoading] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
   const [mintableFractions, setMintableFractions] = useState<
-    Omit<Fraction, "id">[]
+    MintableFraction[]
   >([]);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [selectedNGO, setSelectedNGO] = useState<number | null>(null);
-  const [currency, setCurrency] = useState<"HBAR" | "NGN">("HBAR");
+  const [selectedNGO, setSelectedNGO] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<"HBAR" | "NGN" | "XP">("HBAR");
   const [achievement, setAchievement] = useState<Achievement | null>(null);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
 
@@ -101,13 +103,13 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     refetchProfile();
   };
 
-  const resetDonationState = () => {
+  const resetDonationState = useCallback(() => {
     setMintableFractions([]);
     setTotalPrice(0);
     setSelectedNGO(null);
-  };
+  }, []);
 
-  const value: AppContextType = {
+  const value: AppContextType = useMemo(() => ({
     isConnected,
     accountId,
     isLoading,
@@ -129,7 +131,19 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     setAchievement,
     isRoundEnded: currentRound < lastestRound?.id,
     resetDonationState,
-  };
+  }), [
+    isConnected,
+    accountId,
+    isLoading,
+    lastestRound,
+    currentRound,
+    mintableFractions,
+    totalPrice,
+    selectedNGO,
+    currency,
+    achievement,
+    resetDonationState,
+  ]);
 
   return (
     <AppContext.Provider value={value}>

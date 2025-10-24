@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   CheckCircle,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -45,7 +46,7 @@ const Donate = () => {
   // No need to fetch fractions here since we already have donatedFractionIds from context
 
   const [selectedNGO, setSelectedNGO] = useState<string>(
-    contextSelectedNGO ? contextSelectedNGO.toString() : ""
+    contextSelectedNGO || ""
   );
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [processingStep, setProcessingStep] = useState<string>("");
@@ -59,13 +60,16 @@ const Donate = () => {
   const getDisplayAmount = () => {
     if (currency === APP_CONFIG.HBAR_CURRENCY) {
       return totalPrice.toFixed(3);
+    } else if (currency === APP_CONFIG.XP_CURRENCY) {
+      return (totalPrice * APP_CONFIG.HBAR_TO_XP_RATE).toFixed(0);
     } else {
       return (totalPrice * APP_CONFIG.NGN_TO_HBAR_RATE).toFixed(2);
     }
   };
 
   const currencyLogo =
-    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : ngnLogo;
+    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : 
+    currency === APP_CONFIG.XP_CURRENCY ? null : ngnLogo;
 
   const { data: ngos, isLoading: ngosLoading } = useNGOs();
   const { data: votesByNgo, isLoading: votesLoading } =
@@ -79,17 +83,17 @@ const Donate = () => {
 
   const totalVotes = ngosWithVotes.reduce((sum, ngo) => sum + ngo.votes, 0);
   const selectedNGOData = ngosWithVotes.find(
-    (n) => n.id === parseInt(selectedNGO)
+    (n) => n.id === selectedNGO
   );
 
   // Calculate updated votes for selected NGO
-  const getUpdatedVotes = (ngoId: number) => {
+  const getUpdatedVotes = (ngoId: string) => {
     const ngo = ngosWithVotes.find((n) => n.id === ngoId);
     if (!ngo) return 0;
-    return selectedNGO === String(ngoId) ? ngo.votes + votingPower : ngo.votes;
+    return selectedNGO === ngoId ? ngo.votes + votingPower : ngo.votes;
   };
 
-  const getUpdatedPercentage = (ngoId: number) => {
+  const getUpdatedPercentage = (ngoId: string) => {
     const updatedTotal = selectedNGO ? totalVotes + votingPower : totalVotes;
     return updatedTotal > 0 ? (getUpdatedVotes(ngoId) / updatedTotal) * 100 : 0;
   };
@@ -123,7 +127,7 @@ const Donate = () => {
       return;
     }
 
-    const ngo = ngosWithVotes.find((n) => n.id === parseInt(selectedNGO));
+    const ngo = ngosWithVotes.find((n) => n.id === selectedNGO);
 
     try {
       const result = await donationMutation.mutateAsync({
@@ -133,9 +137,9 @@ const Donate = () => {
           fractions: mintableFractions,
           ngoId: selectedNGO,
           amount: totalPrice,
-          currency,
+          currency: currency as "HBAR" | "NGN" | "XP",
           votingPower,
-          message: `Donated ${mintableFractions} fractions to ${ngo?.name}`,
+          message: `Donated ${mintableFractions.length} fractions to ${ngo?.name}`,
         },
         onProgress: (step) => {
           setProcessingStep(step);
@@ -228,14 +232,23 @@ const Donate = () => {
                   Your Donation
                 </div>
                 <div className="text-2xl sm:text-3xl font-bold flex items-center justify-center sm:justify-start gap-2 text-foreground">
-                  <img
-                    src={currencyLogo}
-                    alt={currency}
-                    className="w-6 h-6 sm:w-8 sm:h-8"
-                  />
+                  {currencyLogo ? (
+                    <img
+                      src={currencyLogo}
+                      alt={currency}
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
+                    />
+                  ) : (
+                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
+                  )}
                   {getDisplayAmount()} {currency}
                 </div>
                 {currency === APP_CONFIG.NGN_CURRENCY && (
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+                    ≈ {totalPrice.toFixed(3)} HBAR
+                  </div>
+                )}
+                {currency === APP_CONFIG.XP_CURRENCY && (
                   <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                     ≈ {totalPrice.toFixed(3)} HBAR
                   </div>
@@ -298,7 +311,7 @@ const Donate = () => {
               ) : (
                 <div className="space-y-3 sm:space-y-4">
                   {ngosWithVotes.map((ngo) => {
-                    const isSelected = selectedNGO === String(ngo.id);
+                    const isSelected = selectedNGO === ngo.id;
                     const displayVotes = getUpdatedVotes(ngo.id);
                     const displayPercentage = getUpdatedPercentage(ngo.id);
                     const votePercentage =
@@ -449,7 +462,7 @@ const Donate = () => {
         onOpenChange={handleSuccessClose}
         mintableFractions={mintableFractions.length}
         totalPrice={totalPrice}
-        currency={currency}
+        currency={currency as "HBAR" | "NGN" | "XP"}
         ngoName={selectedNGOData?.name || ""}
         roundType={roundMetadata?.type}
         transactionHash={transactionData?.transactionHash}

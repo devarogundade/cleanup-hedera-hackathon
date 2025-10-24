@@ -39,11 +39,8 @@ const RewardClaimDialog = ({
 
   if (!reward) return null;
 
-  // Determine if reward is physical (awards, trophies, physical badges, etc.)
-  const isPhysical =
-    reward.title.toLowerCase().includes("award") ||
-    reward.title.toLowerCase().includes("trophy") ||
-    (reward.type === "badge" && !reward.value.toLowerCase().includes("nft"));
+  // Determine if reward is physical based on delivery_type
+  const isPhysical = reward.deliveryType === "physical";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

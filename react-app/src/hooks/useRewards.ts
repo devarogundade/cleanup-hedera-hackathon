@@ -51,6 +51,7 @@ export const useUserRewards = (accountId: string | undefined) => {
         claimedDate: ur.claimed_date,
         icon: ur.rewards?.icon || undefined,
         rarity: ur.rewards?.rarity || undefined,
+        deliveryType: ur.rewards?.delivery_type || "digital",
       })) as Reward[];
     },
     enabled: !!accountId,

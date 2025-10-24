@@ -29,12 +29,14 @@ const NGOInfoSection = ({ roundEnded, roundMetadata }: NGOInfoSectionProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: ngos } = useNGOs();
-  const { data: ngosVotes } = useNGOVotes(round);
+  const { data: votesByNgo } = useNGOVotes(round);
 
-  const totalVotes = Object(ngosVotes)?.values?.reduce(
-    (sum, votes) => sum + votes,
-    0
-  );
+  const ngosWithVotes = ngos?.map((ngo) => ({
+    ...ngo,
+    votes: votesByNgo?.[ngo.id] || 0,
+  })) || [];
+
+  const totalVotes = ngosWithVotes.reduce((sum, ngo) => sum + ngo.votes, 0);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -70,7 +72,7 @@ const NGOInfoSection = ({ roundEnded, roundMetadata }: NGOInfoSectionProps) => {
 
         <CollapsibleContent>
           <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
-            {ngos?.map((ngo, index) => {
+            {ngosWithVotes?.map((ngo, index) => {
               const votePercentage =
                 totalVotes > 0 ? (ngo.votes / totalVotes) * 100 : 0;
 

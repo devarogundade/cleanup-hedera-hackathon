@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/sheet";
 import { APP_CONFIG, ROUTES, SOCIAL_LINKS } from "@/data/constants";
 import {
-  FEATURES,
   HOW_IT_WORKS_STEPS,
   IMPACT_METRICS,
   IMPACT_FEATURES,
@@ -43,7 +42,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useRounds } from "@/hooks/useRounds";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingState } from "@/components/LoadingState";
+import { LandingLoader } from "@/components/LandingLoader";
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: rounds, isLoading: roundsLoading } = useRounds();
@@ -122,9 +121,7 @@ const Landing = () => {
     },
   ];
 
-  if (roundsLoading || statsLoading) {
-    return <LoadingState />;
-  }
+  if (!rounds) return <LandingLoader />;
 
   return (
     <>
@@ -586,6 +583,62 @@ const Landing = () => {
           className="py-24 bg-gradient-to-br from-primary/5 to-accent/5"
         >
           <div className="container mx-auto px-6">
+            {/* Gameplay Section */}
+            <div className="mb-20">
+              <div className="text-center mb-12">
+                <Badge variant="outline" className="mb-4 bg-background">
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Eco-Fighter Game
+                </Badge>
+                <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-foreground">
+                  Play. Fight. Save the Planet
+                </h2>
+                <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+                  Unlock our endless mission-based game after your first
+                  donation. Collect trash, plant trees, and earn XP through
+                  exciting gameplay!
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
+                {[
+                  {
+                    icon: Target,
+                    title: "Endless Missions",
+                    description:
+                      "Play through unlimited scenes with unique challenges. Each mission tests your eco-warrior skills!",
+                  },
+                  {
+                    icon: Sparkles,
+                    title: "Win to Earn",
+                    description:
+                      "Beat the AI opponent to earn XP and level up. Accumulate rewards across multiple scenes!",
+                  },
+                  {
+                    icon: Zap,
+                    title: "Continue Playing",
+                    description:
+                      "Lost a mission? Watch ads to continue or claim your accumulated XP and try again later!",
+                  },
+                ].map((item, index) => (
+                  <Card
+                    key={index}
+                    className="p-6 bg-card/80 backdrop-blur-sm border-2 border-primary/10 hover:border-primary/30 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-4">
+                      <item.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold mb-2 text-foreground">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div>
                 <Badge variant="outline" className="mb-4 bg-background">

@@ -10,6 +10,7 @@ import NGOInfoSection from "@/components/NGOInfoSection";
 import UserStatsBarIntegrated from "@/components/UserStatsBarIntegrated";
 import DonationStatsBar from "@/components/DonationStatsBar";
 import AchievementToast from "@/components/AchievementToast";
+import GameSection from "@/components/GameSection";
 import { useApp } from "@/contexts/AppContext";
 import { useRound } from "@/hooks/useRounds";
 
@@ -31,18 +32,15 @@ const Index = () => {
 
   // Sync URL params with context
   useEffect(() => {
-    if (roundId) {
-      const round = parseInt(roundId);
-      if (
-        (round >= 1 && round <= lastestRound?.id) ||
-        Number.MAX_SAFE_INTEGER
-      ) {
-        setCurrentRound(round);
-      } else {
-        navigate(`/app/${lastestRound?.id}`, { replace: true });
-      }
+    if (!roundId || !lastestRound?.id) return;
+    
+    const round = parseInt(roundId);
+    if (isNaN(round) || round < 1 || round > lastestRound.id) {
+      navigate(`/app/${lastestRound.id}`, { replace: true });
+    } else if (round !== currentRound) {
+      setCurrentRound(round);
     }
-  }, [roundId, setCurrentRound, lastestRound, navigate]);
+  }, [roundId, setCurrentRound, lastestRound, navigate, currentRound]);
 
   const handleDonationComplete = () => {
     resetDonationState();
@@ -67,6 +65,9 @@ const Index = () => {
 
       <main className="w-full max-w-[1600px] mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-8">
         <DonationStatsBar />
+        
+        <GameSection />
+        
         <div className="mb-3 sm:mb-4 md:mb-8">
           {isRoundEnded && (
             <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-muted border border-border rounded-lg">

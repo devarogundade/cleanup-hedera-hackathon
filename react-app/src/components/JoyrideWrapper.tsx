@@ -27,7 +27,8 @@ const JoyrideWrapper = () => {
   useEffect(() => {
     const hasSeenTour = localStorage.getItem('hasSeenTour');
     if (!hasSeenTour) {
-      setTimeout(() => setRun(true), 1000);
+      const timer = setTimeout(() => setRun(true), 1000);
+      return () => clearTimeout(timer);
     }
   }, []);
 

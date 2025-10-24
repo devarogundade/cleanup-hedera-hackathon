@@ -10,6 +10,7 @@ import Donate from "./pages/Donate";
 import Leaderboard from "./pages/Leaderboard";
 import HowItWorks from "./pages/HowItWorks";
 import FAQ from "./pages/FAQ";
+import GamePlay from "./pages/GamePlay";
 import NotFound from "./pages/NotFound";
 
 function ScrollToTop() {
@@ -32,6 +33,7 @@ const App = () => (
         <Route path="/" element={<Landing />} />
         <Route path="/app" element={<Index />} />
         <Route path="/app/:roundId" element={<Index />} />
+        <Route path="/app/:roundId/play" element={<GamePlay />} />
         <Route path="/donate" element={<Donate />} />
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/leaderboard" element={<Leaderboard />} />

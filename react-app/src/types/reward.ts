@@ -31,6 +31,7 @@ export interface Reward {
   claimedDate?: string;
   icon?: string;
   rarity?: "common" | "rare" | "epic" | "legendary";
+  deliveryType?: "physical" | "digital";
 }
 
 export interface Achievement {

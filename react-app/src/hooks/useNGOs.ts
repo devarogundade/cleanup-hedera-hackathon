@@ -34,7 +34,7 @@ export const useNGOVotes = (roundId: number) => {
       const votesByNgo = data.reduce((acc, vote) => {
         acc[vote.ngo_id] = (acc[vote.ngo_id] || 0) + vote.voting_power;
         return acc;
-      }, {} as Record<number, number>);
+      }, {} as Record<string, number>);
 
       return votesByNgo;
     },

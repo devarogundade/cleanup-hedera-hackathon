@@ -13,6 +13,7 @@
   "dependencies": {
     "@hashgraph/sdk": "^2.75.0",
     "@hookform/resolvers": "^3.10.0",
+    "@paystack/inline-js": "^2.22.7",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -51,6 +52,7 @@
     "ethers": "^6.15.0",
     "hashconnect": "^3.0.14",
     "input-otp": "^1.4.2",
+    "lovable-tagger": "^1.1.11",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
     "react": "^18.3.1",

@@ -360,9 +360,9 @@ const TrashSiteVisualization = ({
 
             {/* Render fractions */}
             {fractionsData?.map((fraction) => {
-              const isSelected = mintableFractions
-                .map((m) => m.position)
-                .includes(fraction.position);
+              const isSelected = mintableFractions.some(
+                (m) => m.position === fraction.position
+              );
               const isDonated = fraction.donated;
               const isNotAllowed = fraction.notAllowed;
 
@@ -409,7 +409,7 @@ const TrashSiteVisualization = ({
                         : "cursor-pointer hover:opacity-50 hover:stroke-primary"
                     }`}
                     onClick={() =>
-                      !isNotAllowed && handleFractionClick(fraction)
+                      !isNotAllowed && !isDonated && handleFractionClick(fraction)
                     }
                   />
                   {isDonated && (
@@ -511,7 +511,7 @@ const TrashSiteVisualization = ({
         onDonate={handleAddToDonation}
         onRemove={handleRemoveFromDonation}
         isSelected={
-          dialogFraction ? mintableFractions.includes(dialogFraction) : false
+          dialogFraction ? mintableFractions.some(m => m.position === dialogFraction.position) : false
         }
       />
     </>

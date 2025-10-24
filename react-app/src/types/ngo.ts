@@ -3,7 +3,7 @@
  */
 
 export interface NGO {
-  id: number;
+  id: string;
   name: string;
   description: string;
   logo: string;
@@ -17,7 +17,7 @@ export interface NGOWithPercentage extends NGO {
 }
 
 export interface WinningNGO {
-  id: number;
+  id: string;
   name: string;
   votes: number;
   totalVotes: number;

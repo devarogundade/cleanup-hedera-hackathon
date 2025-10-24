@@ -18,7 +18,7 @@ interface DonationSuccessDialogProps {
   onOpenChange: (open: boolean) => void;
   mintableFractions: number;
   totalPrice: number;
-  currency: "HBAR" | "NGN";
+  currency: "HBAR" | "NGN" | "XP";
   ngoName: string;
   roundType?: string;
   transactionHash?: string;
@@ -41,6 +41,8 @@ const DonationSuccessDialog = ({
   const getDisplayAmount = () => {
     if (currency === APP_CONFIG.HBAR_CURRENCY) {
       return totalPrice.toFixed(3);
+    } else if (currency === APP_CONFIG.XP_CURRENCY) {
+      return (totalPrice * APP_CONFIG.HBAR_TO_XP_RATE).toFixed(0);
     } else {
       return (totalPrice * APP_CONFIG.NGN_TO_HBAR_RATE).toFixed(2);
     }
@@ -65,42 +67,53 @@ const DonationSuccessDialog = ({
   };
 
   const currencyLogo =
-    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : ngnLogo;
+    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : 
+    currency === APP_CONFIG.XP_CURRENCY ? null : ngnLogo;
 
   useEffect(() => {
-    if (open && !showConfetti) {
-      setShowConfetti(true);
-      // Trigger confetti
-      const duration = 3000;
-      const end = Date.now() + duration;
-
-      const frame = () => {
-        confetti({
-          particleCount: 2,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: ["#10b981", "#3b82f6", "#8b5cf6"],
-        });
-        confetti({
-          particleCount: 2,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: ["#10b981", "#3b82f6", "#8b5cf6"],
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-
-      frame();
-    }
-
     if (!open) {
       setShowConfetti(false);
+      return;
     }
+
+    if (showConfetti) return;
+
+    setShowConfetti(true);
+    
+    // Trigger confetti with cleanup
+    const duration = 3000;
+    const end = Date.now() + duration;
+    let frameId: number;
+
+    const frame = () => {
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ["#10b981", "#3b82f6", "#8b5cf6"],
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ["#10b981", "#3b82f6", "#8b5cf6"],
+      });
+
+      if (Date.now() < end) {
+        frameId = requestAnimationFrame(frame);
+      }
+    };
+
+    frame();
+
+    // Cleanup function to cancel animation frame
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+    };
   }, [open, showConfetti]);
 
   return (
@@ -127,10 +140,19 @@ const DonationSuccessDialog = ({
               <span className="text-muted-foreground">Amount Donated</span>
               <div className="text-right">
                 <span className="text-2xl font-bold text-gradient flex items-center gap-2 justify-end">
-                  <img src={currencyLogo} alt={currency} className="w-6 h-6" />
+                  {currencyLogo ? (
+                    <img src={currencyLogo} alt={currency} className="w-6 h-6 rounded-full" />
+                  ) : (
+                    <Sparkles className="w-6 h-6 text-accent" />
+                  )}
                   {getDisplayAmount()} {currency}
                 </span>
                 {currency === APP_CONFIG.NGN_CURRENCY && (
+                  <span className="text-sm text-muted-foreground">
+                    ≈ {totalPrice.toFixed(3)} HBAR
+                  </span>
+                )}
+                {currency === APP_CONFIG.XP_CURRENCY && (
                   <span className="text-sm text-muted-foreground">
                     ≈ {totalPrice.toFixed(3)} HBAR
                   </span>

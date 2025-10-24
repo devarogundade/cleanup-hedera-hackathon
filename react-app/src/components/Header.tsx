@@ -64,15 +64,15 @@ const Header = () => {
   };
 
   return (
-    <header className="border-b border-border bg-card/50 backdrop-blur-lg sticky top-0 z-50 h-[60px] sm:h-[70px]">
+    <header className="border-b border-border/50 glass backdrop-blur-xl sticky top-0 z-50 h-[60px] sm:h-[70px] shadow-md">
       <div className="w-full h-full px-3 sm:px-6">
         <div className="flex items-center justify-between h-full gap-2">
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
-              <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-primary shadow-[0_4px_16px_hsl(220_10%_50%_/_0.2)] group-hover:scale-110 transition-transform flex items-center justify-center animate-glow-pulse">
+              <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-gaming shadow-md group-hover:opacity-90 transition-all flex items-center justify-center">
                 <Leaf className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-white" />
               </div>
-              <span className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
+              <span className="text-lg sm:text-xl md:text-2xl font-bold text-gradient-gaming">
                 CleanUp
               </span>
             </Link>
@@ -80,7 +80,7 @@ const Header = () => {
             {/* Desktop Round Navigation */}
             {location.pathname.startsWith("/app") && (
               <TooltipProvider>
-                <div className="hidden sm:flex items-center gap-4 bg-secondary rounded-lg px-8 py-1 min-w-[280px] justify-center">
+                <div className="hidden sm:flex items-center gap-4 glass rounded-lg px-8 py-1 min-w-[280px] justify-center shadow-sm">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button

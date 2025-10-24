@@ -7,7 +7,7 @@ export interface MintableFraction {
   position: number;
   row: number;
   col: number;
-  buffer: Buffer; // fractioned image
+  buffer: Uint8Array; // fractioned image
 }
 
 export interface Fraction {

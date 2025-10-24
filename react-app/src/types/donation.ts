@@ -2,13 +2,14 @@
  * Donation Types
  */
 
-export type Currency APP_CONFIG.HBAR_CURRENCY | "NGN";
+export type Currency = "HBAR" | "NGN" | "XP";
 
 export interface DonationAmount {
   amount: number;
   currency: Currency;
   amountInHBAR: number;
   amountInNGN: number;
+  amountInXP: number;
 }
 
 export interface Donation {
@@ -17,7 +18,7 @@ export interface Donation {
   roundId: number;
   fractionIds: number[];
   amount: DonationAmount;
-  ngoId: number;
+  ngoId: string;
   votingPower: number;
   transactionHash: string;
   nftTokenIds: string[];
@@ -40,7 +41,7 @@ export interface DonationRequest {
   fractionIds: number[];
   amount: number;
   currency: Currency;
-  ngoId: number;
+  ngoId: string;
 }
 
 export interface DonationResponse {

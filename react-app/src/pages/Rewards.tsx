@@ -251,9 +251,7 @@ const Rewards = () => {
                   </TableRow>
                 ) : (
                   paginatedRewards.map((reward) => {
-                    const isPhysical =
-                      reward.title.toLowerCase().includes("trophy") ||
-                      reward.title.toLowerCase().includes("award");
+                    const isPhysical = reward.deliveryType === "physical";
 
                     return (
                       <TableRow

@@ -7,8 +7,10 @@ export const APP_CONFIG = {
   NAME: "CleanUp",
   TAGLINE: "Making environmental impact transparent and rewarding",
   NGN_TO_HBAR_RATE: 239.15,
+  HBAR_TO_XP_RATE: 1000,
   HBAR_CURRENCY: "HBAR",
   NGN_CURRENCY: "NGN",
+  XP_CURRENCY: "XP",
 } as const;
 
 export const XP_SYSTEM = {
@@ -20,6 +22,7 @@ export const ROUTES = {
   HOME: "/",
   APP: "/app",
   APP_ROUND: (roundId: number) => `/app/${roundId}`,
+  GAME_PLAY: (roundId: number) => `/app/${roundId}/play`,
   REWARDS: "/rewards",
   LEADERBOARD: "/leaderboard",
   HOW_IT_WORKS: "/how-it-works",

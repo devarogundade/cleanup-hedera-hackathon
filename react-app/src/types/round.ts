@@ -16,7 +16,7 @@ export interface RoundMetadata {
   imageUrl: string;
   unitValue: number;
   winningNGO?: {
-    id: number;
+    id: string;
     name: string;
     votes: number;
     totalVotes: number;

@@ -28,12 +28,13 @@ const AchievementToast = ({ achievement, onClose }: AchievementToastProps) => {
       });
 
       // Auto close after 5 seconds
-      const timer = setTimeout(() => {
+      const hideTimer = setTimeout(() => {
         setIsVisible(false);
-        setTimeout(onClose, 300);
+        const closeTimer = setTimeout(onClose, 300);
+        return () => clearTimeout(closeTimer);
       }, 5000);
 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(hideTimer);
     }
   }, [achievement, onClose]);
 
@@ -45,9 +46,11 @@ const AchievementToast = ({ achievement, onClose }: AchievementToastProps) => {
         <button
           onClick={() => {
             setIsVisible(false);
-            setTimeout(onClose, 300);
+            const closeTimer = setTimeout(onClose, 300);
+            // Note: cleanup handled by component unmount
           }}
           className="absolute top-2 right-2 text-white/70 hover:text-white"
+          aria-label="Close achievement notification"
         >
           <X className="w-4 h-4" />
         </button>

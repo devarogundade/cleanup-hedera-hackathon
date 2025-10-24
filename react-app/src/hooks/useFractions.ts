@@ -58,7 +58,7 @@ export const useFractions = (
           const position = row * cols + col + 1; // Start from 1 instead of 0
 
           const recordedFraction = recordedFractions?.find(
-            (f) => f.tokenId && f.position === position
+            (f) => f.position === position
           );
 
           fractionArray.push({
@@ -67,8 +67,8 @@ export const useFractions = (
             y: row * fractionHeight,
             width: fractionWidth,
             height: fractionHeight,
-            donated: recordedFraction?.donated,
-            notAllowed: recordedFraction?.notAllowed,
+            donated: recordedFraction?.donated || false,
+            notAllowed: recordedFraction?.notAllowed || false,
             price: unitValue,
             tokenId: recordedFraction?.tokenId,
             donor: recordedFraction?.donor,
