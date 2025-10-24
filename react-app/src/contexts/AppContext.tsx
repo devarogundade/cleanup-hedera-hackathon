@@ -9,7 +9,7 @@ import { ProfileSetupDialog } from "@/components/ProfileSetupDialog";
 import useHashConnect from "@/hooks/useHashConnect";
 import { useProfile } from "@/hooks/useProfile";
 import { useLastestRound } from "@/hooks/useRounds";
-import { RoundMetadata } from "@/types";
+import { Fraction, MintableFraction, RoundMetadata } from "@/types";
 
 interface Achievement {
   title: string;
@@ -32,8 +32,8 @@ interface AppContextType {
   setCurrentRound: (round: number) => void;
 
   // Donation state
-  selectedFractions: number[];
-  setSelectedFractions: (value: number[]) => void;
+  mintableFractions: Omit<Fraction, "id">[];
+  setMintableFractions: (value: Omit<Fraction, "id">[]) => void;
   totalPrice: number;
   setTotalPrice: (price: number) => void;
   selectedNGO: number | null;
@@ -71,7 +71,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [accountId, setAccountId] = useState("");
   const [isLoading, setLoading] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
-  const [selectedFractions, setSelectedFractions] = useState<number[]>([]);
+  const [mintableFractions, setMintableFractions] = useState<
+    Omit<Fraction, "id">[]
+  >([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [selectedNGO, setSelectedNGO] = useState<number | null>(null);
   const [currency, setCurrency] = useState<"HBAR" | "NGN">("HBAR");
@@ -100,7 +102,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   };
 
   const resetDonationState = () => {
-    setSelectedFractions([]);
+    setMintableFractions([]);
     setTotalPrice(0);
     setSelectedNGO(null);
   };
@@ -115,8 +117,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     lastestRound,
     currentRound,
     setCurrentRound,
-    selectedFractions,
-    setSelectedFractions,
+    mintableFractions,
+    setMintableFractions,
     totalPrice,
     setTotalPrice,
     selectedNGO,

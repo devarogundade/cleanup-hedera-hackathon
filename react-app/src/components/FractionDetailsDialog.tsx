@@ -7,13 +7,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/contexts/SettingsContext";
-import { Fraction, RoundMetadata } from "@/types";
+import { Fraction, MintableFraction, RoundMetadata } from "@/types";
 
 interface FractionDetailsDialogProps {
   fraction: Omit<Fraction, "id"> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDonate?: () => void;
+  onDonate?: (mintable: MintableFraction) => void;
   onRemove?: () => void;
   isSelected?: boolean;
   roundMetadata: RoundMetadata;
@@ -180,7 +180,7 @@ const FractionDetailsDialog = ({
                   className="w-full h-12 bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 text-white border-0 shadow-[0_0_20px_rgba(147,51,234,0.5)] hover:shadow-[0_0_35px_rgba(147,51,234,0.7)] transition-all hover:scale-[1.02]"
                   onClick={() => {
                     playSound("success");
-                    onDonate();
+                    // onDonate(); todo
                     onOpenChange(false);
                   }}
                 >

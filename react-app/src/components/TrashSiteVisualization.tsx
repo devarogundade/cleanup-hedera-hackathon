@@ -17,7 +17,7 @@ import { useApp } from "@/contexts/AppContext";
 import { toast } from "@/hooks/use-toast";
 import { RoundMetadata } from "@/types/round";
 import { useFractions } from "@/hooks/useFractions";
-import type { Fraction } from "@/types/fraction";
+import type { Fraction, MintableFraction } from "@/types/fraction";
 
 interface TrashSiteVisualizationProps {
   roundMetadata: RoundMetadata;
@@ -30,7 +30,7 @@ const TrashSiteVisualization = ({
   const {
     currentRound: round,
     isRoundEnded: roundEnded,
-    setSelectedFractions: setContextSelectedFractions,
+    setMintableFractions: setContextSelectedFractions,
     setTotalPrice,
   } = useApp();
   const { data: fractionsData, isLoading: fractionsLoading } = useFractions(
@@ -39,7 +39,9 @@ const TrashSiteVisualization = ({
     roundMetadata?.unitValue
   );
 
-  const [selectedFractions, setSelectedFractions] = useState<number[]>([]);
+  const [mintableFractions, setMintableFractions] = useState<
+    MintableFraction[]
+  >([]);
   const [dialogFraction, setDialogFraction] = useState<Omit<
     Fraction,
     "id"
@@ -107,18 +109,18 @@ const TrashSiteVisualization = ({
     setIsDragging(false);
   };
 
-  const handleAddToDonation = () => {
-    if (!dialogFraction || dialogFraction.donated) return;
+  const handleAddToDonation = (mintable: MintableFraction) => {
+    if (!dialogFraction) return;
 
     // Add to selection
-    const newSelection = [...selectedFractions, dialogFraction.position];
+    const newSelection = [...mintableFractions, mintable];
     toast({
       title: "Fraction added! ✨",
       description: `Fraction #${dialogFraction.position} added to your donation selection`,
     });
     playSound("success");
 
-    setSelectedFractions(newSelection);
+    setMintableFractions(newSelection);
 
     setContextSelectedFractions(newSelection);
     setTotalPrice(newSelection.length * roundMetadata.unitValue);
@@ -128,8 +130,8 @@ const TrashSiteVisualization = ({
     if (!dialogFraction) return;
 
     // Remove from selection
-    const newSelection = selectedFractions.filter(
-      (position) => position !== dialogFraction.position
+    const newSelection = mintableFractions.filter(
+      (m) => m.position !== dialogFraction.position
     );
     toast({
       title: "Fraction removed",
@@ -137,7 +139,7 @@ const TrashSiteVisualization = ({
     });
     playSound("click");
 
-    setSelectedFractions(newSelection);
+    setMintableFractions(newSelection);
 
     setContextSelectedFractions(newSelection);
     setTotalPrice(newSelection.length * roundMetadata?.unitValue);
@@ -358,7 +360,9 @@ const TrashSiteVisualization = ({
 
             {/* Render fractions */}
             {fractionsData?.map((fraction) => {
-              const isSelected = selectedFractions.includes(fraction.position);
+              const isSelected = mintableFractions
+                .map((m) => m.position)
+                .includes(fraction.position);
               const isDonated = fraction.donated;
               const isNotAllowed = fraction.notAllowed;
 
@@ -493,7 +497,7 @@ const TrashSiteVisualization = ({
               Selected Fractions
             </p>
             <p className="text-xl sm:text-2xl font-bold text-gradient">
-              {selectedFractions.length}
+              {mintableFractions.length}
             </p>
           </div>
         </div>
@@ -507,9 +511,7 @@ const TrashSiteVisualization = ({
         onDonate={handleAddToDonation}
         onRemove={handleRemoveFromDonation}
         isSelected={
-          dialogFraction
-            ? selectedFractions.includes(dialogFraction.position)
-            : false
+          dialogFraction ? mintableFractions.includes(dialogFraction) : false
         }
       />
     </>

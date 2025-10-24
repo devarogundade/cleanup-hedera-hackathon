@@ -26,7 +26,7 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
   const navigate = useNavigate();
   const { playSound } = useSettings();
   const {
-    selectedFractions,
+    mintableFractions,
     totalPrice,
     currentRound: round,
     currency,
@@ -46,7 +46,7 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
 
   const handleDonateClick = () => {
     playSound("click");
-    if (selectedFractions.length === 0) {
+    if (mintableFractions.length === 0) {
       toast({
         title: "No fractions selected",
         description: "Please select at least one fraction to donate",
@@ -132,7 +132,7 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
                 </span>
               </div>
               <span className="text-lg sm:text-xl font-bold text-primary">
-                {selectedFractions.length}
+                {mintableFractions.length}
               </span>
             </div>
 
@@ -156,13 +156,13 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
             </div>
           </div>
 
-          {selectedFractions.length > 0 && (
+          {mintableFractions.length > 0 && (
             <div className="mb-4 p-2 sm:p-3 bg-secondary rounded-lg">
               <p className="text-xs sm:text-sm text-center">
                 🎁 You'll receive{" "}
                 <span className="text-primary font-semibold">
-                  {selectedFractions} NFT
-                  {selectedFractions.length !== 1 ? "s" : ""}
+                  {mintableFractions} NFT
+                  {mintableFractions.length !== 1 ? "s" : ""}
                 </span>
               </p>
             </div>
@@ -177,7 +177,7 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
 
         <Button
           className="w-full text-sm sm:text-base h-11 sm:h-12 font-semibold transition-all hover:scale-[1.02] bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-600 text-white border-0 shadow-[0_0_20px_rgba(147,51,234,0.5)] hover:shadow-[0_0_35px_rgba(147,51,234,0.7)] animate-pulse"
-          disabled={selectedFractions.length === 0 || roundEnded}
+          disabled={mintableFractions.length === 0 || roundEnded}
           onClick={handleDonateClick}
         >
           {roundEnded ? "Round Ended" : "✨ Donate Now ✨"}

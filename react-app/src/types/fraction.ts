@@ -2,6 +2,14 @@
  * Fraction Types - Represents fractional ownership of cleanup sites
  */
 
+export interface MintableFraction {
+  id: number;
+  position: number;
+  row: number;
+  col: number;
+  buffer: Buffer; // fractioned image
+}
+
 export interface Fraction {
   id: number;
   position: number;

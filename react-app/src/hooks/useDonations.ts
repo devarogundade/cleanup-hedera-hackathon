@@ -9,15 +9,8 @@ import {
   ContractExecuteTransaction,
   ContractFunctionParameters,
 } from "@hashgraph/sdk";
-import { RoundMetadata } from "@/types";
+import { MintableFraction, RoundMetadata } from "@/types";
 import { ethers } from "ethers";
-
-interface MintableFraction {
-  id: number;
-  row: number;
-  col: number;
-  buffer: Buffer; // fractioned image
-}
 
 interface DonationParams {
   accountId: string;

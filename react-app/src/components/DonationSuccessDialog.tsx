@@ -15,7 +15,7 @@ import ngnLogo from "@/assets/ngn-logo.png";
 interface DonationSuccessDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedFractions: number;
+  mintableFractions: number;
   totalPrice: number;
   currency: "HBAR" | "NGN";
   ngoName: string;
@@ -27,7 +27,7 @@ interface DonationSuccessDialogProps {
 const DonationSuccessDialog = ({
   open,
   onOpenChange,
-  selectedFractions,
+  mintableFractions,
   totalPrice,
   currency,
   ngoName,
@@ -38,7 +38,7 @@ const DonationSuccessDialog = ({
   const [showConfetti, setShowConfetti] = useState(false);
 
   const NGN_TO_HBAR_RATE = 400;
-  
+
   const getDisplayAmount = () => {
     if (currency === "HBAR") {
       return totalPrice.toFixed(3);
@@ -48,15 +48,20 @@ const DonationSuccessDialog = ({
   };
 
   const handleShareOnX = () => {
-    const roundTypeText = roundType === "tree-planting" 
-      ? "tree planting" 
-      : roundType === "ocean-cleanup"
-      ? "ocean cleanup"
-      : "waste cleanup";
-    
-    const tweetText = `I just donated ${getDisplayAmount()} ${currency} to support ${roundTypeText} with @CleanUpDAO! 🌍\n\nJoined the eco-warrior movement and minted ${selectedFractions} NFT${selectedFractions > 1 ? 's' : ''} on @hedera 💚\n\nSupporting ${ngoName}\n\n#CleanUpDAO #Hedera #ClimateAction`;
-    
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    const roundTypeText =
+      roundType === "tree-planting"
+        ? "tree planting"
+        : roundType === "ocean-cleanup"
+        ? "ocean cleanup"
+        : "waste cleanup";
+
+    const tweetText = `I just donated ${getDisplayAmount()} ${currency} to support ${roundTypeText} with @CleanUpDAO! 🌍\n\nJoined the eco-warrior movement and minted ${mintableFractions} NFT${
+      mintableFractions > 1 ? "s" : ""
+    } on @hedera 💚\n\nSupporting ${ngoName}\n\n#CleanUpDAO #Hedera #ClimateAction`;
+
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      tweetText
+    )}`;
     window.open(tweetUrl, "_blank");
   };
 
@@ -126,16 +131,18 @@ const DonationSuccessDialog = ({
                   {getDisplayAmount()} {currency}
                 </span>
                 {currency === "NGN" && (
-                  <span className="text-sm text-muted-foreground">≈ {totalPrice.toFixed(3)} HBAR</span>
+                  <span className="text-sm text-muted-foreground">
+                    ≈ {totalPrice.toFixed(3)} HBAR
+                  </span>
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">NFTs Minting</span>
               <span className="text-xl font-bold flex items-center gap-2">
                 <Gift className="w-5 h-5 text-primary" />
-                {selectedFractions}
+                {mintableFractions}
               </span>
             </div>
 
@@ -179,7 +186,7 @@ const DonationSuccessDialog = ({
             <Share2 className="w-4 h-4" />
             Share on X
           </Button>
-          
+
           <div className="flex gap-3">
             <Button
               variant="outline"
@@ -193,7 +200,10 @@ const DonationSuccessDialog = ({
               className="flex-1"
               onClick={() => {
                 const hash = transactionHash || "mock";
-                window.open(`https://hashscan.io/testnet/transaction/${hash}`, "_blank");
+                window.open(
+                  `https://hashscan.io/testnet/transaction/${hash}`,
+                  "_blank"
+                );
               }}
             >
               View on HashScan

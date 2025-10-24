@@ -21,7 +21,7 @@ import ngnLogo from "@/assets/ngn-logo.png";
 import DonationSuccessDialog from "@/components/DonationSuccessDialog";
 import { Link } from "react-router-dom";
 import { useNGOs, useNGOVotes } from "@/hooks/useNGOs";
-import { LoadingState, StatsLoadingState } from "@/components/LoadingState";
+import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { useRound } from "@/hooks/useRounds";
 import { useDonation } from "@/hooks/useDonations";
@@ -31,7 +31,7 @@ const Donate = () => {
   const navigate = useNavigate();
   const { playSound } = useSettings();
   const {
-    selectedFractions,
+    mintableFractions,
     totalPrice,
     currency,
     currentRound,
@@ -114,7 +114,7 @@ const Donate = () => {
       return;
     }
 
-    if (selectedFractions.length === 0) {
+    if (mintableFractions.length === 0) {
       toast({
         title: "No fractions selected",
         description: "Please select fractions to donate",
@@ -129,16 +129,16 @@ const Donate = () => {
       const result = await donationMutation.mutateAsync({
         params: {
           accountId,
-          roundId: currentRound,
-          fractionIds: selectedFractions,
-          ngoId: parseInt(selectedNGO),
+          roundMetadata,
+          fractions: mintableFractions,
+          ngoId: selectedNGO,
           amount: totalPrice,
           currency,
           votingPower,
-          message: `Donated ${selectedFractions} fractions to ${ngo?.name}`,
+          message: `Donated ${mintableFractions} fractions to ${ngo?.name}`,
         },
         onProgress: (step) => {
-          setProcessingStep(step.message);
+          setProcessingStep(step);
         },
       });
 
@@ -157,7 +157,7 @@ const Donate = () => {
     window.location.href = `/app/${currentRound}`;
   };
 
-  if (selectedFractions.length === 0) {
+  if (mintableFractions.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <Card className="max-w-md w-full p-6 sm:p-8 text-center">
@@ -262,11 +262,11 @@ const Donate = () => {
                   Contributing
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-foreground">
-                  {selectedFractions.length} fractions
+                  {mintableFractions.length} fractions
                 </div>
                 <Badge variant="secondary" className="mt-2 text-xs">
-                  {selectedFractions} NFT
-                  {selectedFractions.length !== 1 ? "s" : ""} included
+                  {mintableFractions.map((m) => m.position).join(", ")} NFT
+                  {mintableFractions.length !== 1 ? "s" : ""} included
                 </Badge>
               </div>
             </div>
@@ -423,16 +423,21 @@ const Donate = () => {
               {donationMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
-                  <span className="text-sm sm:text-base">{processingStep || "Processing..."}</span>
+                  <span className="text-sm sm:text-base">
+                    {processingStep || "Processing..."}
+                  </span>
                 </>
               ) : selectedNGO ? (
                 <>
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  <span className="text-sm sm:text-base">✨ Confirm & Donate to{" "}
-                  {selectedNGOData?.name} ✨</span>
+                  <span className="text-sm sm:text-base">
+                    ✨ Confirm & Donate to {selectedNGOData?.name} ✨
+                  </span>
                 </>
               ) : (
-                <span className="text-sm sm:text-base">Select an NGO to Continue</span>
+                <span className="text-sm sm:text-base">
+                  Select an NGO to Continue
+                </span>
               )}
             </Button>
           </div>
@@ -442,7 +447,7 @@ const Donate = () => {
       <DonationSuccessDialog
         open={showSuccessDialog}
         onOpenChange={handleSuccessClose}
-        selectedFractions={selectedFractions.length}
+        mintableFractions={mintableFractions.length}
         totalPrice={totalPrice}
         currency={currency}
         ngoName={selectedNGOData?.name || ""}
