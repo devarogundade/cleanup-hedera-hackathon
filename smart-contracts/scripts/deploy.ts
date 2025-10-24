@@ -47,5 +47,5 @@ main().catch((err) => {
 });
 
 // Deploying contracts with: 0x2531dCd3dC58559c19EEE09736443D026D40d5f5
-// Deployed land: 0x6D3DA74c8601191F6a61989AF86B220c314C6FC9
+// Deployed land: 0x25343B605175F221FC9c2bef6f737Cc8FFD7667c
 // Created Underlying NFT
