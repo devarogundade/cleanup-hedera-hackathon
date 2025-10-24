@@ -394,7 +394,7 @@ export type Database = {
           fraction_ids: number[];
           id: string;
           message: string | null;
-          nft_token_ids: string[] | null;
+          nft_token_ids: number[] | null;
           ngo_id: string;
           round_id: number;
           status: string;
@@ -413,7 +413,7 @@ export type Database = {
           fraction_ids: number[];
           id?: string;
           message?: string | null;
-          nft_token_ids?: string[] | null;
+          nft_token_ids?: number[] | null;
           ngo_id: string;
           round_id: number;
           status?: string;
@@ -432,7 +432,7 @@ export type Database = {
           fraction_ids?: number[];
           id?: string;
           message?: string | null;
-          nft_token_ids?: string[] | null;
+          nft_token_ids?: number[] | null;
           ngo_id?: number;
           round_id?: number;
           status?: string;
