@@ -3,7 +3,7 @@
  * Handles all donation-related API calls and business logic
  */
 
-import { XP_SYSTEM } from "@/data/constants";
+import { APP_CONFIG, XP_SYSTEM } from "@/data/constants";
 import {
   DonationRequest,
   DonationResponse,
@@ -31,16 +31,20 @@ export class DonationService {
     fromCurrency: Currency,
     toCurrency: Currency
   ): number {
-    const NGN_TO_HBAR_RATE = 239.15;
-
     if (fromCurrency === toCurrency) return amount;
 
-    if (fromCurrency === "HBAR" && toCurrency === "NGN") {
-      return amount * NGN_TO_HBAR_RATE;
+    if (
+      fromCurrency === APP_CONFIG.HBAR_CURRENCY &&
+      toCurrency === APP_CONFIG.NGN_CURRENCY
+    ) {
+      return amount * APP_CONFIG.NGN_TO_HBAR_RATE;
     }
 
-    if (fromCurrency === "NGN" && toCurrency === "HBAR") {
-      return amount / NGN_TO_HBAR_RATE;
+    if (
+      fromCurrency === APP_CONFIG.NGN_CURRENCY &&
+      toCurrency === APP_CONFIG.HBAR_CURRENCY
+    ) {
+      return amount / APP_CONFIG.NGN_TO_HBAR_RATE;
     }
 
     return amount;
@@ -54,11 +58,13 @@ export class DonationService {
     currency: Currency
   ): DonationAmount {
     const amountInHBAR =
-      currency === "HBAR"
+      currency === APP_CONFIG.HBAR_CURRENCY
         ? amount
         : this.convertCurrency(amount, "NGN", "HBAR");
     const amountInNGN =
-      currency === "NGN" ? amount : this.convertCurrency(amount, "HBAR", "NGN");
+      currency === APP_CONFIG.NGN_CURRENCY
+        ? amount
+        : this.convertCurrency(amount, "HBAR", "NGN");
 
     return {
       amount,
@@ -166,7 +172,9 @@ export class DonationService {
    * Format price with currency
    */
   static formatPrice(amount: number, currency: Currency): string {
-    return `${amount.toFixed(currency === "HBAR" ? 3 : 2)} ${currency}`;
+    return `${amount.toFixed(
+      currency === APP_CONFIG.HBAR_CURRENCY ? 3 : 2
+    )} ${currency}`;
   }
 
   /**

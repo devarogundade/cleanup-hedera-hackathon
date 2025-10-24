@@ -26,6 +26,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useRound } from "@/hooks/useRounds";
 import { useDonation } from "@/hooks/useDonations";
 import useHashConnect from "@/hooks/useHashConnect";
+import { APP_CONFIG } from "@/data/constants";
 
 const Donate = () => {
   const navigate = useNavigate();
@@ -52,20 +53,19 @@ const Donate = () => {
 
   const donationMutation = useDonation();
 
-  const NGN_TO_HBAR_RATE = 400;
-
   // Calculate voting power: 1 HBAR = 100 votes
   const votingPower = Math.floor(totalPrice * 100);
 
   const getDisplayAmount = () => {
-    if (currency === "HBAR") {
+    if (currency === APP_CONFIG.HBAR_CURRENCY) {
       return totalPrice.toFixed(3);
     } else {
-      return (totalPrice * NGN_TO_HBAR_RATE).toFixed(2);
+      return (totalPrice * APP_CONFIG.NGN_TO_HBAR_RATE).toFixed(2);
     }
   };
 
-  const currencyLogo = currency === "HBAR" ? hbarLogo : ngnLogo;
+  const currencyLogo =
+    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : ngnLogo;
 
   const { data: ngos, isLoading: ngosLoading } = useNGOs();
   const { data: votesByNgo, isLoading: votesLoading } =
@@ -235,7 +235,7 @@ const Donate = () => {
                   />
                   {getDisplayAmount()} {currency}
                 </div>
-                {currency === "NGN" && (
+                {currency === APP_CONFIG.NGN_CURRENCY && (
                   <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                     ≈ {totalPrice.toFixed(3)} HBAR
                   </div>

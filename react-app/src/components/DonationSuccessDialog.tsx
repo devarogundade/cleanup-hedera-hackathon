@@ -11,6 +11,7 @@ import { CheckCircle2, Sparkles, Gift, Share2 } from "lucide-react";
 import confetti from "canvas-confetti";
 import hbarLogo from "@/assets/hbar-logo.png";
 import ngnLogo from "@/assets/ngn-logo.png";
+import { APP_CONFIG } from "@/data/constants";
 
 interface DonationSuccessDialogProps {
   open: boolean;
@@ -37,13 +38,11 @@ const DonationSuccessDialog = ({
 }: DonationSuccessDialogProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const NGN_TO_HBAR_RATE = 400;
-
   const getDisplayAmount = () => {
-    if (currency === "HBAR") {
+    if (currency === APP_CONFIG.HBAR_CURRENCY) {
       return totalPrice.toFixed(3);
     } else {
-      return (totalPrice * NGN_TO_HBAR_RATE).toFixed(2);
+      return (totalPrice * APP_CONFIG.NGN_TO_HBAR_RATE).toFixed(2);
     }
   };
 
@@ -65,7 +64,8 @@ const DonationSuccessDialog = ({
     window.open(tweetUrl, "_blank");
   };
 
-  const currencyLogo = currency === "HBAR" ? hbarLogo : ngnLogo;
+  const currencyLogo =
+    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : ngnLogo;
 
   useEffect(() => {
     if (open && !showConfetti) {
@@ -130,7 +130,7 @@ const DonationSuccessDialog = ({
                   <img src={currencyLogo} alt={currency} className="w-6 h-6" />
                   {getDisplayAmount()} {currency}
                 </span>
-                {currency === "NGN" && (
+                {currency === APP_CONFIG.NGN_CURRENCY && (
                   <span className="text-sm text-muted-foreground">
                     ≈ {totalPrice.toFixed(3)} HBAR
                   </span>

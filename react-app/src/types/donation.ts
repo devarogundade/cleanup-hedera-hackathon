@@ -2,7 +2,7 @@
  * Donation Types
  */
 
-export type Currency = "HBAR" | "NGN";
+export type Currency APP_CONFIG.HBAR_CURRENCY | "NGN";
 
 export interface DonationAmount {
   amount: number;

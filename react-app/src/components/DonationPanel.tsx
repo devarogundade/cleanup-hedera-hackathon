@@ -15,6 +15,7 @@ import {
 import hbarLogo from "@/assets/hbar-logo.png";
 import ngnLogo from "@/assets/ngn-logo.png";
 import { RoundMetadata } from "@/types";
+import { APP_CONFIG } from "@/data/constants";
 
 interface DonationPanelProps {
   roundEnded: boolean;
@@ -25,22 +26,13 @@ interface DonationPanelProps {
 const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
   const navigate = useNavigate();
   const { playSound } = useSettings();
-  const {
-    mintableFractions,
-    totalPrice,
-    currentRound: round,
-    currency,
-    setCurrency,
-  } = useApp();
-
-  // Conversion rate: 1 HBAR = ~400 NGN (approximate)
-  const NGN_TO_HBAR_RATE = 400;
+  const { mintableFractions, totalPrice, currency, setCurrency } = useApp();
 
   const getDisplayAmount = () => {
-    if (currency === "HBAR") {
+    if (currency === APP_CONFIG.HBAR_CURRENCY) {
       return totalPrice.toFixed(3);
     } else {
-      return (totalPrice * NGN_TO_HBAR_RATE).toFixed(2);
+      return (totalPrice * APP_CONFIG.NGN_TO_HBAR_RATE).toFixed(2);
     }
   };
 
@@ -98,7 +90,11 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
                 <SelectValue>
                   <div className="flex items-center gap-2">
                     <img
-                      src={currency === "HBAR" ? hbarLogo : ngnLogo}
+                      src={
+                        currency === APP_CONFIG.HBAR_CURRENCY
+                          ? hbarLogo
+                          : ngnLogo
+                      }
                       alt={currency}
                       className="w-5 h-5"
                     />
@@ -147,7 +143,7 @@ const DonationPanel = ({ roundEnded, roundMetadata }: DonationPanelProps) => {
                 <span className="text-lg sm:text-xl font-bold text-primary block">
                   {getDisplayAmount()} {currency}
                 </span>
-                {currency === "NGN" && (
+                {currency === APP_CONFIG.NGN_CURRENCY && (
                   <span className="text-xs text-muted-foreground">
                     ≈ {totalPrice.toFixed(3)} HBAR
                   </span>

@@ -6,6 +6,9 @@
 export const APP_CONFIG = {
   NAME: "CleanUp",
   TAGLINE: "Making environmental impact transparent and rewarding",
+  NGN_TO_HBAR_RATE: 239.15,
+  HBAR_CURRENCY: "HBAR",
+  NGN_CURRENCY: "NGN",
 } as const;
 
 export const XP_SYSTEM = {

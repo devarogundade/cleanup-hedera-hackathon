@@ -11,6 +11,7 @@ import {
 } from "@hashgraph/sdk";
 import { MintableFraction, RoundMetadata } from "@/types";
 import { ethers } from "ethers";
+import { APP_CONFIG } from "@/data/constants";
 
 interface DonationParams {
   accountId: string;
@@ -95,8 +96,14 @@ export const useDonation = () => {
       const txResponse = await executeTransaction(accountId, tx);
 
       // Convert to HBAR if NGN
-      const amountInHBAR = currency === "HBAR" ? amount : amount / 400;
-      const amountInNGN = currency === "NGN" ? amount : amount * 400;
+      const amountInHBAR =
+        currency === APP_CONFIG.HBAR_CURRENCY
+          ? amount
+          : amount / APP_CONFIG.NGN_TO_HBAR_RATE;
+      const amountInNGN =
+        currency === APP_CONFIG.NGN_CURRENCY
+          ? amount
+          : amount * APP_CONFIG.NGN_TO_HBAR_RATE;
 
       // Calculate XP (10 XP per fraction)
       const xpEarned = fractions.length * 10;
