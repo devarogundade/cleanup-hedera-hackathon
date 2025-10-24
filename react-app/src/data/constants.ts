@@ -14,16 +14,6 @@ export const APP_CONFIG = {
 export const XP_SYSTEM = {
   PER_FRACTION: 10,
   LEVEL_MULTIPLIER: 100,
-  ACHIEVEMENTS: {
-    FIRST_DONATION: { title: "First Impact", xp: 50 },
-    FIRST_FIVE: {
-      title: "First Five",
-      description: "Selected 5 fractions in a single round!",
-      xp: 50,
-    },
-    ECO_WARRIOR: { title: "Eco Warrior", xp: 100 },
-    PLANET_HERO: { title: "Planet Hero", xp: 200 },
-  },
 } as const;
 
 export const ROUTES = {
