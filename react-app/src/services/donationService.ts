@@ -31,7 +31,7 @@ export class DonationService {
     fromCurrency: Currency,
     toCurrency: Currency
   ): number {
-    const NGN_TO_HBAR_RATE = 400;
+    const NGN_TO_HBAR_RATE = 239.15;
 
     if (fromCurrency === toCurrency) return amount;
 

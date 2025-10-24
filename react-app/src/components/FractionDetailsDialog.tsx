@@ -10,7 +10,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { Fraction, RoundMetadata } from "@/types";
 
 interface FractionDetailsDialogProps {
-  fraction: Fraction | null;
+  fraction: Omit<Fraction, "id"> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDonate?: () => void;
@@ -56,8 +56,8 @@ const FractionDetailsDialog = ({
         const fractionWidth = img.width / cols;
         const fractionHeight = img.height / rows;
 
-        const row = Math.floor(fraction.id / cols);
-        const col = fraction.id % cols;
+        const row = Math.floor(fraction.position / cols);
+        const col = fraction.position % cols;
 
         const cropX = col * fractionWidth;
         const cropY = row * fractionHeight;
@@ -88,8 +88,10 @@ const FractionDetailsDialog = ({
 
   if (!fraction) return null;
 
-  const row = Math.floor(fraction.id / Math.sqrt(roundMetadata.totalFractions));
-  const col = fraction.id % Math.sqrt(roundMetadata.totalFractions);
+  const row = Math.floor(
+    fraction.position / Math.sqrt(roundMetadata.totalFractions)
+  );
+  const col = fraction.position % Math.sqrt(roundMetadata.totalFractions);
   const area = (fraction.width * fraction.height).toFixed(2);
 
   return (
@@ -97,7 +99,7 @@ const FractionDetailsDialog = ({
       <DialogContent className="bg-card border-border max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            Fraction #{fraction.id}
+            Fraction #{fraction.position}
           </DialogTitle>
         </DialogHeader>
 
@@ -107,11 +109,11 @@ const FractionDetailsDialog = ({
             <div className="relative rounded-lg overflow-hidden border-2 border-primary/30">
               <img
                 src={nftPreview}
-                alt={`NFT #${fraction.id}`}
+                alt={`NFT #${fraction.position}`}
                 className="w-full"
               />
               <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold">
-                #{fraction.id}
+                #{fraction.position}
               </div>
             </div>
           ) : (

@@ -13,20 +13,33 @@ async function main() {
   const factory = await Factory.deploy(deployer.address);
   await factory.waitForDeployment();
 
+  console.log("Deployed factory:", await factory.getAddress());
+
   await factory.newRound();
 
-  await factory.createLand(
+  console.log("New round created.");
+
+  const tx = await factory.createLand(
     7_776_000,
     {
-      name: "",
-      symbol: "",
-      maxSupply: 0,
-      unitValue: 1000,
+      name: "Coastal Cleanup - Santa Monica Beach",
+      symbol: "CCSMB",
+      maxSupply: 144,
+      unitValue: ethers.parseUnits("5", 8),
       squareMeters: 10,
-      latitude: 0,
-      longitude: 0,
-      votingPowerBps: 100000,
+      latitude: 340_195,
+      longitude: -1_184_912,
+      votingPowerBps: 10_000_000_000,
     },
     { value: ethers.parseEther("10"), gasLimit: 1_000_000 }
   );
+
+  const receipt = await tx.wait(1);
+
+  console.log("Land created.", receipt);
 }
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

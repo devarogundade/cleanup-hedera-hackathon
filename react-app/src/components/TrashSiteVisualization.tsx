@@ -40,7 +40,10 @@ const TrashSiteVisualization = ({
   );
 
   const [selectedFractions, setSelectedFractions] = useState<number[]>([]);
-  const [dialogFraction, setDialogFraction] = useState<Fraction | null>(null);
+  const [dialogFraction, setDialogFraction] = useState<Omit<
+    Fraction,
+    "id"
+  > | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -50,7 +53,7 @@ const TrashSiteVisualization = ({
 
   const isTreePlanting = roundMetadata.type === "tree-planting";
 
-  const handleFractionClick = (fraction: Fraction) => {
+  const handleFractionClick = (fraction: Omit<Fraction, "id">) => {
     if (roundEnded) {
       toast({
         title: "Round has ended",
@@ -108,22 +111,17 @@ const TrashSiteVisualization = ({
     if (!dialogFraction || dialogFraction.donated) return;
 
     // Add to selection
-    const newSelection = [...selectedFractions, dialogFraction.id];
+    const newSelection = [...selectedFractions, dialogFraction.position];
     toast({
       title: "Fraction added! ✨",
-      description: `Fraction #${dialogFraction.id} added to your donation selection`,
+      description: `Fraction #${dialogFraction.position} added to your donation selection`,
     });
     playSound("success");
 
     setSelectedFractions(newSelection);
 
-    const totalPrice = newSelection.reduce((sum, id) => {
-      const f = fractionsData.find((frac) => frac.id === id);
-      return sum + (f?.price || 0);
-    }, 0);
-
     setContextSelectedFractions(newSelection);
-    setTotalPrice(totalPrice);
+    setTotalPrice(newSelection.length * roundMetadata.unitValue);
   };
 
   const handleRemoveFromDonation = () => {
@@ -131,11 +129,11 @@ const TrashSiteVisualization = ({
 
     // Remove from selection
     const newSelection = selectedFractions.filter(
-      (id) => id !== dialogFraction.id
+      (position) => position !== dialogFraction.position
     );
     toast({
       title: "Fraction removed",
-      description: `Fraction #${dialogFraction.id} removed from selection`,
+      description: `Fraction #${dialogFraction.position} removed from selection`,
     });
     playSound("click");
 
@@ -178,7 +176,7 @@ const TrashSiteVisualization = ({
                 <FileText className="w-3 h-3" />
                 <span className="text-muted-foreground">Contract:</span>
                 <span className="font-mono text-xs">
-                  {roundMetadata.contractAddress}
+                  {roundMetadata.contractId}
                 </span>
               </div>
             </div>
@@ -360,12 +358,12 @@ const TrashSiteVisualization = ({
 
             {/* Render fractions */}
             {fractionsData?.map((fraction) => {
-              const isSelected = selectedFractions.includes(fraction.id);
+              const isSelected = selectedFractions.includes(fraction.position);
               const isDonated = fraction.donated;
               const isNotAllowed = fraction.notAllowed;
 
               return (
-                <g key={fraction.id}>
+                <g key={fraction.position}>
                   <rect
                     x={fraction.x}
                     y={fraction.y}
@@ -509,7 +507,9 @@ const TrashSiteVisualization = ({
         onDonate={handleAddToDonation}
         onRemove={handleRemoveFromDonation}
         isSelected={
-          dialogFraction ? selectedFractions.includes(dialogFraction.id) : false
+          dialogFraction
+            ? selectedFractions.includes(dialogFraction.position)
+            : false
         }
       />
     </>

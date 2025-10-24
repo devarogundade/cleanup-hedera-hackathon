@@ -3,7 +3,7 @@ export interface RoundMetadata {
   type: "ocean-cleanup" | "waste-cleanup" | "tree-planting";
   creationTime: string;
   endedTime: string | null;
-  contractAddress: string;
+  contractId: string;
   isActive: boolean;
   totalFractions: number;
   totalDonations?: number;

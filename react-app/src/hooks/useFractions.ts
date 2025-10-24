@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Fraction } from "@/types/fraction";
 
-// Hook to get donated fractions for a round
-export const useDonatedFractions = (roundId: number) => {
+// Hook to get recorded fractions for a round
+export const useRecordedFractions = (roundId: number) => {
   return useQuery({
-    queryKey: ["donated-fractions", roundId],
+    queryKey: ["recorded-fractions", roundId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("fractions")
@@ -15,14 +15,18 @@ export const useDonatedFractions = (roundId: number) => {
 
       if (error) throw error;
 
-      return data.map((fraction) => ({
-        id: fraction.id,
-        tokenId: fraction.token_id || undefined,
-        donor: fraction.donor_id || undefined,
-        roundId: fraction.round_id,
-        donated: true,
-        notAllowed: fraction.not_allowed,
-      }));
+      return data.map(
+        (fraction) =>
+          ({
+            id: fraction.id,
+            position: fraction.position,
+            tokenId: fraction.token_id || undefined,
+            donor: fraction.donor_id || undefined,
+            roundId: fraction.round_id,
+            donated: true,
+            notAllowed: fraction.not_allowed,
+          } as Partial<Fraction>)
+      );
     },
   });
 };
@@ -33,7 +37,7 @@ export const useFractions = (
   totalFractions: number,
   unitValue: number
 ) => {
-  const { data: donatedFractions, isLoading } = useDonatedFractions(roundId);
+  const { data: recordedFractions, isLoading } = useRecordedFractions(roundId);
 
   const gridConfig = {
     rows: Math.sqrt(totalFractions),
@@ -46,28 +50,28 @@ export const useFractions = (
       const { rows, cols } = gridConfig;
       const fractionWidth = 100 / cols;
       const fractionHeight = 100 / rows;
-      const fractionArray: Fraction[] = [];
+      const fractionArray: Omit<Fraction, "id">[] = [];
 
       // Create full grid - IDs start from 1 to match token IDs
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          const id = row * cols + col + 1; // Start from 1 instead of 0
+          const position = row * cols + col + 1; // Start from 1 instead of 0
 
-          const donatedFraction = donatedFractions?.find(
-            (f) => f.tokenId && f.tokenId === id
+          const recordedFraction = recordedFractions?.find(
+            (f) => f.tokenId && f.position === position
           );
 
           fractionArray.push({
-            id,
+            position,
             x: col * fractionWidth,
             y: row * fractionHeight,
             width: fractionWidth,
             height: fractionHeight,
-            donated: donatedFraction?.donated,
-            notAllowed: donatedFraction?.notAllowed,
+            donated: recordedFraction?.donated,
+            notAllowed: recordedFraction?.notAllowed,
             price: unitValue,
-            tokenId: id, // tokenId matches id
-            donor: donatedFraction?.donor,
+            tokenId: recordedFraction?.tokenId,
+            donor: recordedFraction?.donor,
             roundId,
           });
         }

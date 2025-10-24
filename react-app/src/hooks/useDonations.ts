@@ -3,70 +3,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { AchievementService } from "@/services/achievementService";
 import { RewardService } from "@/services/rewardService";
+import { executeTransaction } from "@/services/hashconnect";
+import {
+  AccountId,
+  ContractExecuteTransaction,
+  ContractFunctionParameters,
+} from "@hashgraph/sdk";
+import { RoundMetadata } from "@/types";
+import { ethers } from "ethers";
+
+interface MintableFraction {
+  id: number;
+  row: number;
+  col: number;
+  buffer: Buffer; // fractioned image
+}
 
 interface DonationParams {
   accountId: string;
-  roundId: number;
-  fractionIds: number[];
-  ngoId: number;
+  roundMetadata: RoundMetadata;
+  fractions: MintableFraction[];
+  ngoId: string;
   amount: number;
   currency: "HBAR" | "NGN";
   votingPower: number;
   message?: string;
 }
-
-interface SmartContractSimulation {
-  step: string;
-  message: string;
-  delay: number;
-}
-
-const SMART_CONTRACT_STEPS: SmartContractSimulation[] = [
-  {
-    step: "initializing",
-    message: "Initializing smart contract...",
-    delay: 800,
-  },
-  {
-    step: "verifying",
-    message: "Verifying wallet and fractions...",
-    delay: 1200,
-  },
-  {
-    step: "minting",
-    message: "Minting NFTs on Hedera...",
-    delay: 1500,
-  },
-  {
-    step: "transferring",
-    message: "Transferring funds to escrow...",
-    delay: 1000,
-  },
-  {
-    step: "voting",
-    message: "Recording your NGO vote...",
-    delay: 800,
-  },
-  {
-    step: "confirming",
-    message: "Confirming transaction on ledger...",
-    delay: 1200,
-  },
-];
-
-const simulateSmartContractCall = async (
-  onProgress?: (step: SmartContractSimulation) => void
-): Promise<string> => {
-  for (const step of SMART_CONTRACT_STEPS) {
-    if (onProgress) {
-      onProgress(step);
-    }
-    await new Promise((resolve) => setTimeout(resolve, step.delay));
-  }
-
-  // Generate mock transaction hash
-  return `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
-};
 
 export const useDonation = () => {
   const queryClient = useQueryClient();
@@ -77,18 +39,20 @@ export const useDonation = () => {
       onProgress,
     }: {
       params: DonationParams;
-      onProgress?: (step: SmartContractSimulation) => void;
+      onProgress?: (step: string) => void;
     }) => {
       const {
         accountId,
-        roundId,
-        fractionIds,
+        roundMetadata,
+        fractions,
         ngoId,
         amount,
         currency,
         votingPower,
         message,
       } = params;
+
+      onProgress("");
 
       // Get user profile to get the UUID and current stats
       const { data: profile, error: profileError } = await supabase
@@ -101,25 +65,56 @@ export const useDonation = () => {
         throw new Error("Profile not found. Please set up your profile first.");
       }
 
-      // Simulate smart contract interaction
-      const transactionHash = await simulateSmartContractCall(onProgress);
+      onProgress("");
+
+      const metadata: Uint8Array[] = [];
+      for (const fraction of fractions) {
+        const imageUrl = ""; // buffer --- upload to supabase
+        JSON.stringify({
+          name: roundMetadata?.location,
+          creator: roundMetadata?.contractId,
+          description: roundMetadata?.location,
+          image: imageUrl,
+          type: "image/jpg",
+          format: "HIP412@2.0.0",
+          properties: {
+            row: fraction.row,
+            col: fraction.col,
+            location: roundMetadata.location,
+          },
+        });
+        const metadataUrl = ""; // upload json to supabase
+        metadata.push(ethers.toUtf8Bytes(metadataUrl));
+      }
+
+      onProgress("");
+
+      const tx = new ContractExecuteTransaction()
+        .setContractId(roundMetadata?.contractId)
+        .setFunction(
+          "mint",
+          new ContractFunctionParameters()
+            .addBytesArray(metadata)
+            .addAddress(AccountId.fromString(ngoId).toEvmAddress())
+            .addAddress(AccountId.fromString(accountId).toEvmAddress())
+        );
+
+      const txResponse = await executeTransaction(accountId, tx);
 
       // Convert to HBAR if NGN
       const amountInHBAR = currency === "HBAR" ? amount : amount / 400;
       const amountInNGN = currency === "NGN" ? amount : amount * 400;
 
       // Calculate XP (10 XP per fraction)
-      const xpEarned = fractionIds.length * 10;
+      const xpEarned = fractions.length * 10;
 
-      // Generate NFT token IDs as strings
-      const nftTokenIds = fractionIds.map((id) => 
-        `${roundId}-${id.toString().padStart(6, "0")}`
-      );
+      const fractionIds = fractions.map((f) => f.id);
+      const nftTokenIds = txResponse.serials.map(Number);
 
       // Create transaction record
       const transactionPayload = {
         user_id: accountId,
-        round_id: roundId,
+        round_id: roundMetadata.id,
         type: "donation" as const,
         amount: amountInHBAR,
         amount_in_hbar: amountInHBAR,
@@ -130,10 +125,12 @@ export const useDonation = () => {
         ngo_id: ngoId,
         voting_power: votingPower,
         xp_earned: xpEarned,
-        transaction_hash: transactionHash,
+        transaction_hash: txResponse.topicId.toString(),
         message: message || `Donated ${fractionIds.length} fractions`,
         status: "confirmed" as const,
       };
+
+      onProgress("");
 
       const { data: transaction, error: txError } = await supabase
         .from("transactions")
@@ -143,21 +140,25 @@ export const useDonation = () => {
 
       if (txError) throw txError;
 
+      onProgress("");
+
       // Check if any fractions are already donated
       const { data: existingFractions } = await supabase
         .from("fractions")
         .select("token_id")
-        .eq("round_id", roundId)
+        .eq("round_id", roundMetadata.id)
         .in("token_id", fractionIds);
 
       if (existingFractions && existingFractions.length > 0) {
-        const alreadyDonated = existingFractions.map(f => f.token_id);
-        throw new Error(`Fractions ${alreadyDonated.join(", ")} are already donated`);
+        const alreadyDonated = existingFractions.map((f) => f.token_id);
+        throw new Error(
+          `Fractions ${alreadyDonated.join(", ")} are already donated`
+        );
       }
 
       // Insert donated fractions into the fractions table
       const fractionsToInsert = fractionIds.map((fractionId) => ({
-        round_id: roundId,
+        round_id: roundMetadata.id,
         donated: true,
         donor_id: accountId,
         transaction_id: transaction.id,
@@ -165,41 +166,47 @@ export const useDonation = () => {
         not_allowed: false,
       }));
 
+      onProgress("");
+
       const { error: fractionsError } = await supabase
         .from("fractions")
         .insert(fractionsToInsert);
 
       if (fractionsError) throw fractionsError;
 
+      onProgress("");
+
       // Record NGO vote
-      const { error: voteError } = await supabase
-        .from("ngo_votes")
-        .insert({
-          user_id: accountId,
-          donation_id: transaction.id,
-          ngo_id: ngoId,
-          round_id: roundId,
-          voting_power: votingPower,
-        });
+      const { error: voteError } = await supabase.from("ngo_votes").insert({
+        user_id: accountId,
+        donation_id: transaction.id,
+        ngo_id: ngoId,
+        round_id: roundMetadata.id,
+        voting_power: votingPower,
+      });
 
       if (voteError) throw voteError;
+
+      onProgress("");
 
       // Update round stats (simplified - just update the fields directly)
       const { data: currentRound, error: roundFetchError } = await supabase
         .from("rounds")
         .select("*")
-        .eq("id", roundId)
+        .eq("id", roundMetadata.id)
         .single();
 
       if (roundFetchError) throw roundFetchError;
 
       if (currentRound) {
+        onProgress("");
+
         // Check if this is user's first donation in this round
         const { data: userDonations } = await supabase
           .from("transactions")
           .select("id")
           .eq("user_id", accountId)
-          .eq("round_id", roundId)
+          .eq("round_id", roundMetadata.id)
           .eq("type", "donation")
           .limit(2);
 
@@ -208,15 +215,16 @@ export const useDonation = () => {
         const { error: roundUpdateError } = await supabase
           .from("rounds")
           .update({
-            donated_fractions: currentRound.donated_fractions + fractionIds.length,
+            donated_fractions:
+              currentRound.donated_fractions + fractionIds.length,
             total_amount: currentRound.total_amount + amountInHBAR,
             total_donations: currentRound.total_donations + amountInHBAR,
             total_votes: currentRound.total_votes + votingPower,
-            participant_count: isFirstDonation 
-              ? currentRound.participant_count + 1 
+            participant_count: isFirstDonation
+              ? currentRound.participant_count + 1
               : currentRound.participant_count,
           })
-          .eq("id", roundId);
+          .eq("id", roundMetadata.id);
 
         if (roundUpdateError) throw roundUpdateError;
       }
@@ -224,6 +232,8 @@ export const useDonation = () => {
       // Update profile stats
       const newTotalXP = profile.total_xp + xpEarned;
       const newLevel = Math.floor(newTotalXP / 100) + 1;
+
+      onProgress("");
 
       const { error: profileUpdateError } = await supabase
         .from("profiles")
@@ -239,6 +249,8 @@ export const useDonation = () => {
 
       if (profileUpdateError) throw profileUpdateError;
 
+      onProgress("");
+
       // Check and unlock achievements
       const unlockedAchievements = await AchievementService.checkAchievements(
         accountId,
@@ -250,10 +262,12 @@ export const useDonation = () => {
           current_streak: profile.current_streak,
         },
         {
-          roundId,
+          roundId: roundMetadata.id,
           fractionCount: fractionIds.length,
         }
       );
+
+      onProgress("");
 
       // Check and unlock rewards
       const unlockedRewards = await RewardService.checkRewards(accountId, {
@@ -263,7 +277,7 @@ export const useDonation = () => {
 
       return {
         transaction,
-        transactionHash,
+        transactionHash: txResponse.topicId.toString(),
         xpEarned,
         nftTokenIds,
         unlockedAchievements,
@@ -277,7 +291,9 @@ export const useDonation = () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       queryClient.invalidateQueries({ queryKey: ["fractions"] });
       queryClient.invalidateQueries({ queryKey: ["rounds"] });
-      queryClient.invalidateQueries({ queryKey: ["round", variables.params.roundId] });
+      queryClient.invalidateQueries({
+        queryKey: ["round", variables.params.roundMetadata.id],
+      });
       queryClient.invalidateQueries({ queryKey: ["ngo-votes"] });
       queryClient.invalidateQueries({ queryKey: ["user-achievements"] });
       queryClient.invalidateQueries({ queryKey: ["user-rewards"] });
@@ -315,137 +331,6 @@ export const useDonation = () => {
     onError: (error: Error) => {
       toast({
         title: "Donation failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-export const useWithdrawal = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      params,
-      onProgress,
-    }: {
-      params: {
-        accountId: string;
-        roundId: number;
-        amount: number;
-        currency: "HBAR" | "NGN";
-        ngoId: number;
-        message?: string;
-      };
-      onProgress?: (step: SmartContractSimulation) => void;
-    }) => {
-      const { accountId, roundId, amount, currency, ngoId, message } = params;
-
-      // Get user profile
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("account_id")
-        .eq("account_id", accountId)
-        .maybeSingle();
-
-      if (profileError || !profile) {
-        throw new Error("Profile not found.");
-      }
-
-      // Simulate smart contract interaction
-      const withdrawalSteps: SmartContractSimulation[] = [
-        {
-          step: "initializing",
-          message: "Initializing withdrawal...",
-          delay: 800,
-        },
-        {
-          step: "verifying",
-          message: "Verifying authorization...",
-          delay: 1000,
-        },
-        {
-          step: "transferring",
-          message: "Transferring funds from escrow...",
-          delay: 1500,
-        },
-        {
-          step: "confirming",
-          message: "Confirming transaction...",
-          delay: 1000,
-        },
-      ];
-
-      for (const step of withdrawalSteps) {
-        if (onProgress) {
-          onProgress(step);
-        }
-        await new Promise((resolve) => setTimeout(resolve, step.delay));
-      }
-
-      const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
-
-      const amountInHBAR = currency === "HBAR" ? amount : amount / 400;
-      const amountInNGN = currency === "NGN" ? amount : amount * 400;
-
-      // Create withdrawal transaction
-      const { data: transaction, error: txError } = await supabase
-        .from("transactions")
-        .insert({
-          user_id: accountId,
-          round_id: roundId,
-          type: "withdrawal",
-          amount: amountInHBAR,
-          amount_in_hbar: amountInHBAR,
-          amount_in_ngn: amountInNGN,
-          currency,
-          fraction_ids: [],
-          ngo_id: ngoId,
-          voting_power: 0,
-          xp_earned: 0,
-          transaction_hash: transactionHash,
-          message: message || `Withdrew ${amount} ${currency}`,
-          status: "confirmed",
-        })
-        .select()
-        .single();
-
-      if (txError) throw txError;
-
-      // Update round stats
-      const { data: currentRound } = await supabase
-        .from("rounds")
-        .select("total_withdrawals")
-        .eq("id", roundId)
-        .single();
-
-      if (currentRound) {
-        await supabase
-          .from("rounds")
-          .update({
-            total_withdrawals: currentRound.total_withdrawals + amountInHBAR,
-          })
-          .eq("id", roundId);
-      }
-
-      return {
-        transaction,
-        transactionHash,
-      };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["rounds"] });
-
-      toast({
-        title: "Withdrawal successful! ✅",
-        description: "Funds transferred successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Withdrawal failed",
         description: error.message,
         variant: "destructive",
       });

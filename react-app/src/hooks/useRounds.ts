@@ -24,7 +24,7 @@ export const useRounds = () => {
         isActive:
           new Date(round.start_date) <= new Date() &&
           new Date(round.end_date) >= new Date(),
-        contractAddress: round.contract_address,
+        contractId: round.contract_id,
         totalDonations: Number(round.total_donations) || 0,
         totalWithdrawals: Number(round.total_withdrawals) || 0,
         location: {
@@ -76,7 +76,7 @@ export const useLastestRound = () => {
         isActive:
           new Date(round.start_date) <= new Date() &&
           new Date(round.end_date) >= new Date(),
-        contractAddress: round.contract_address,
+        contractId: round.contract_id,
         totalDonations: Number(round.total_donations) || 0,
         totalWithdrawals: Number(round.total_withdrawals) || 0,
         location: {
@@ -125,7 +125,7 @@ export const useRound = (roundId: number) => {
         isActive:
           new Date(data.start_date) <= new Date() &&
           new Date(data.end_date) >= new Date(),
-        contractAddress: data.contract_address,
+        contractId: data.contract_id,
         totalDonations: Number(data.total_donations) || 0,
         totalWithdrawals: Number(data.total_withdrawals) || 0,
         location: {

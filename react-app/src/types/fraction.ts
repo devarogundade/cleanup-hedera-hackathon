@@ -4,6 +4,7 @@
 
 export interface Fraction {
   id: number;
+  position: number;
   x: number;
   y: number;
   width: number;

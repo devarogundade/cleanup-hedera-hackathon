@@ -22,7 +22,7 @@ CREATE TABLE public.rounds (
   type TEXT NOT NULL,
   start_date TIMESTAMP WITH TIME ZONE NOT NULL,
   end_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  contract_address TEXT,
+  contract_id TEXT,
   location_name TEXT NOT NULL,
   location_coordinates TEXT NOT NULL,
   location_description TEXT,

@@ -70,22 +70,22 @@ contract Land is
         token.symbol = params.symbol;
         token.memo = "Non-fungible Token";
         token.treasury = address(this);
-        token.tokenSupplyType = true; // finite supply
+        token.tokenSupplyType = true; // set supply to FINITE
         token.maxSupply = params.maxSupply;
         token.tokenKeys = keys;
         token.freezeDefault = false;
         token.expiry = createAutoRenewExpiry(address(this), autoRenewPeriod);
 
-        // Call HTS to create the token
-        (int256 responseCode, address tokenAddress) = createNonFungibleToken(
-            token
-        );
+        // // Call HTS to create the token
+        // (int256 responseCode, address createdToken) = createNonFungibleToken(
+        //     token
+        // );
 
-        if (responseCode != HederaResponseCodes.SUCCESS) {
-            revert TokenCreationFailed(responseCode);
-        }
+        // if (responseCode != HederaResponseCodes.SUCCESS) {
+        //     revert TokenCreationFailed(responseCode);
+        // }
 
-        underlying = tokenAddress;
+        // underlying = createdToken;
 
         emit LandInitialized(
             params.name,
