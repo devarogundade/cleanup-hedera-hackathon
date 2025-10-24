@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {LandInterface} from "../interfaces/LandInterface.sol";
 
 library LandStorageLib {
-    using Strings for int64;
-
     // ---------------------------------------------------------------------
     // STORAGE SLOT
     // ---------------------------------------------------------------------
-    bytes32 internal constant STORAGE_SLOT = keccak256("earth3.land.storage");
+    bytes32 internal constant STORAGE_SLOT = keccak256("cleanup.land.storage");
 
     // ---------------------------------------------------------------------
     // STORAGE STRUCT
@@ -17,6 +15,7 @@ library LandStorageLib {
     struct Storage {
         address validator;
         bool isEnded;
+        LandInterface.LandData data;
     }
 
     // ---------------------------------------------------------------------
@@ -32,10 +31,11 @@ library LandStorageLib {
     // ---------------------------------------------------------------------
     // INITIALIZER
     // ---------------------------------------------------------------------
-    function initialize() internal {
+    function initialize(LandInterface.LandData memory data) internal {
         Storage storage ls = s();
         ls.isEnded = false;
         ls.validator = address(0);
+        ls.data = data;
     }
 
     function close(address validator) internal {

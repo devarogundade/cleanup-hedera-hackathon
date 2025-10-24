@@ -31,10 +31,11 @@ const NGOInfoSection = ({ roundEnded, roundMetadata }: NGOInfoSectionProps) => {
   const { data: ngos } = useNGOs();
   const { data: votesByNgo } = useNGOVotes(round);
 
-  const ngosWithVotes = ngos?.map((ngo) => ({
-    ...ngo,
-    votes: votesByNgo?.[ngo.id] || 0,
-  })) || [];
+  const ngosWithVotes =
+    ngos?.map((ngo) => ({
+      ...ngo,
+      votes: votesByNgo?.[ngo.id] || 0,
+    })) || [];
 
   const totalVotes = ngosWithVotes.reduce((sum, ngo) => sum + ngo.votes, 0);
 
@@ -91,7 +92,7 @@ const NGOInfoSection = ({ roundEnded, roundMetadata }: NGOInfoSectionProps) => {
                   className={`p-2 sm:p-3 md:p-4 lg:p-5 rounded-lg sm:rounded-xl border-2 transition-all hover:scale-102 ${
                     ngoWithPercentage.isWinner
                       ? "border-primary bg-gradient-to-r from-primary/10 to-primary-glow/10 shadow-[0_8px_24px_hsl(220_10%_50%_/_0.2)] animate-glow-pulse"
-                      : "border-border bg-secondary/30 hover:border-primary/50 hover:shadow-[0_4px_16px_hsl(220_10%_50%_/_0.15)]"
+                      : "border-border bg-secondary/5 hover:border-primary/50 hover:shadow-[0_4px_16px_hsl(220_10%_50%_/_0.15)]"
                   }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >

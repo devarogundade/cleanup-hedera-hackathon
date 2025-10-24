@@ -30,30 +30,39 @@ contract Land is
     using LandGovernanceLib for *;
 
     address public underlying;
-    LandData public data;
-
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
-    constructor(
-        address admin,
-        int64 autoRenewPeriod,
-        LandInterface.CreateParams memory params
-    ) payable {
+    constructor(address admin, LandInterface.CreateParams memory params) {
         LandValidationLib.checkAddress(admin);
 
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
 
-        LandStorageLib.initialize();
+        LandStorageLib.initialize(
+            LandData({
+                squareMeters: params.squareMeters,
+                latitude: params.latitude,
+                longitude: params.longitude,
+                maxSupply: params.maxSupply,
+                unitValue: params.unitValue
+            })
+        );
         LandGovernanceLib.initialize(params.votingPowerBps);
 
-        data = LandData({
-            squareMeters: params.squareMeters,
-            latitude: params.latitude,
-            longitude: params.longitude,
-            maxSupply: params.maxSupply,
-            unitValue: params.unitValue
-        });
+        emit LandInitialized(
+            params.squareMeters,
+            params.latitude,
+            params.longitude,
+            params.unitValue,
+            params.maxSupply,
+            params.votingPowerBps
+        );
+    }
 
+    function createUnderlying(
+        string memory name,
+        string memory symbol,
+        int64 autoRenewPeriod
+    ) external payable onlyRole(DEFAULT_ADMIN_ROLE) {
         IHederaTokenService.TokenKey[]
             memory keys = new IHederaTokenService.TokenKey[](1);
 
@@ -64,39 +73,30 @@ contract Land is
             address(this)
         );
 
+        LandStorageLib.Storage memory str = LandStorageLib.s();
+
         // Token details
         IHederaTokenService.HederaToken memory token;
-        token.name = params.name;
-        token.symbol = params.symbol;
+        token.name = name;
+        token.symbol = symbol;
         token.memo = "Non-fungible Token";
         token.treasury = address(this);
         token.tokenSupplyType = true; // set supply to FINITE
-        token.maxSupply = params.maxSupply;
+        token.maxSupply = str.data.maxSupply;
         token.tokenKeys = keys;
         token.freezeDefault = false;
         token.expiry = createAutoRenewExpiry(address(this), autoRenewPeriod);
 
-        // // Call HTS to create the token
-        // (int256 responseCode, address createdToken) = createNonFungibleToken(
-        //     token
-        // );
-
-        // if (responseCode != HederaResponseCodes.SUCCESS) {
-        //     revert TokenCreationFailed(responseCode);
-        // }
-
-        // underlying = createdToken;
-
-        emit LandInitialized(
-            params.name,
-            params.symbol,
-            params.squareMeters,
-            params.latitude,
-            params.longitude,
-            params.unitValue,
-            params.maxSupply,
-            params.votingPowerBps
+        // Call HTS to create the token
+        (int256 responseCode, address createdToken) = createNonFungibleToken(
+            token
         );
+
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert TokenCreationFailed(responseCode);
+        }
+
+        underlying = createdToken;
     }
 
     function mint(
@@ -109,7 +109,9 @@ contract Land is
         whenNotPaused
         returns (int64 votingPower, int64[] memory tokenSerial)
     {
-        int64 required = data.unitValue * int64(int256(metadata.length));
+        LandStorageLib.Storage memory str = LandStorageLib.s();
+
+        int64 required = str.data.unitValue * int64(int256(metadata.length));
 
         int64 value = int64(int256(msg.value));
 

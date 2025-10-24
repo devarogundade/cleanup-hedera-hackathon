@@ -16,8 +16,6 @@ interface LandInterface {
     error TokenMintFailed(int256 responseCode);
 
     event LandInitialized(
-        string name,
-        string symbol,
         int32 squareMeters,
         int64 latitude,
         int64 longitude,
@@ -63,8 +61,6 @@ interface LandInterface {
     }
 
     struct CreateParams {
-        string name;
-        string symbol;
         int64 maxSupply;
         int64 unitValue;
         int32 squareMeters;

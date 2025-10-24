@@ -504,7 +504,8 @@ const GamePlay = () => {
         toast.error("Time ran out! Mission failed.");
       }
     }
-  }, [gameOver, gameStarted, accumulatedXP, playerWon]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameOver, gameStarted, playerWon]);
 
   // Check if all items collected/planted (runs every frame via game loop)
   const checkGameComplete = () => {
@@ -588,367 +589,508 @@ const GamePlay = () => {
   }, []);
 
   // Game loop
-  useEffect(() => {
-    if (!gameStarted || gameOver || isPaused) return;
+  useEffect(
+    () => {
+      if (!gameStarted || gameOver || isPaused) return;
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (!ctx) return;
 
-    // Cache gradients outside draw loop for performance
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    skyGradient.addColorStop(0, "#87CEEB");
-    skyGradient.addColorStop(1, "#B0E0E6");
+      // Cache gradients outside draw loop for performance
+      const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      skyGradient.addColorStop(0, "#87CEEB");
+      skyGradient.addColorStop(1, "#B0E0E6");
 
-    const groundGradient = ctx.createLinearGradient(
-      0,
-      canvas.height - 100,
-      0,
-      canvas.height
-    );
-    groundGradient.addColorStop(0, "#5A8F5A");
-    groundGradient.addColorStop(1, "#4A7F4A");
+      const groundGradient = ctx.createLinearGradient(
+        0,
+        canvas.height - 100,
+        0,
+        canvas.height
+      );
+      groundGradient.addColorStop(0, "#5A8F5A");
+      groundGradient.addColorStop(1, "#4A7F4A");
 
-    const draw = () => {
-      if (gameMode === "planting") {
-        // Desert background for tree planting
-        // Sky gradient
-        const desertSkyGradient = ctx.createLinearGradient(
-          0,
-          0,
-          0,
-          canvas.height
-        );
-        desertSkyGradient.addColorStop(0, "#FFD89B");
-        desertSkyGradient.addColorStop(1, "#FFAA66");
-        ctx.fillStyle = desertSkyGradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Sand ground
-        const sandGradient = ctx.createLinearGradient(
-          0,
-          canvas.height - 150,
-          0,
-          canvas.height
-        );
-        sandGradient.addColorStop(0, "#F4C27A");
-        sandGradient.addColorStop(1, "#D4A86A");
-        ctx.fillStyle = sandGradient;
-        ctx.fillRect(0, canvas.height - 150, canvas.width, 150);
-
-        // Sand dunes pattern
-        ctx.fillStyle = "rgba(212, 168, 106, 0.3)";
-        for (let i = 0; i < canvas.width; i += 150) {
-          ctx.beginPath();
-          ctx.ellipse(i + 75, canvas.height - 120, 100, 30, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Add some cacti in the background (use cached positions)
-        ctx.fillStyle = "#2D5016";
-        cactiPositionsRef.current.forEach((cactus) => {
-          ctx.fillRect(cactus.x, cactus.y, 8, 30);
-          ctx.fillRect(cactus.x - 10, cactus.y + 10, 10, 3);
-          ctx.fillRect(cactus.x + 8, cactus.y + 10, 10, 3);
-        });
-      } else {
-        // City and ocean background for cleanup
-        // Sky gradient
-        ctx.fillStyle = skyGradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Ocean region (right 30% of canvas)
-        const oceanStartX = canvas.width * 0.7;
-        const oceanGradient = ctx.createLinearGradient(
-          oceanStartX,
-          0,
-          canvas.width,
-          canvas.height
-        );
-        oceanGradient.addColorStop(0, "#4A90E2");
-        oceanGradient.addColorStop(0.5, "#357ABD");
-        oceanGradient.addColorStop(1, "#2E5C8A");
-        ctx.fillStyle = oceanGradient;
-        ctx.fillRect(oceanStartX, 0, canvas.width - oceanStartX, canvas.height);
-
-        // Waves in ocean
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 5; i++) {
-          ctx.beginPath();
-          const waveY = 100 + i * 80;
-          for (let x = oceanStartX; x < canvas.width; x += 30) {
-            const y = waveY + Math.sin((x + Date.now() / 500) * 0.05) * 10;
-            if (x === oceanStartX) {
-              ctx.moveTo(x, y);
-            } else {
-              ctx.lineTo(x, y);
-            }
-          }
-          ctx.stroke();
-        }
-
-        // Beach/shore area
-        ctx.fillStyle = "#F4C27A";
-        ctx.beginPath();
-        ctx.moveTo(oceanStartX - 50, canvas.height - 120);
-        ctx.lineTo(oceanStartX + 50, canvas.height - 120);
-        ctx.lineTo(oceanStartX + 100, canvas.height);
-        ctx.lineTo(oceanStartX - 100, canvas.height);
-        ctx.closePath();
-        ctx.fill();
-
-        // Ground with texture for city area
-        ctx.fillStyle = groundGradient;
-        ctx.fillRect(0, canvas.height - 100, oceanStartX, 100);
-
-        // Draw road
-        ctx.fillStyle = "#4A4A4A";
-        ctx.fillRect(0, canvas.height - 120, oceanStartX, 20);
-        ctx.strokeStyle = "#FFD700";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([20, 10]);
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height - 110);
-        ctx.lineTo(oceanStartX, canvas.height - 110);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-
-      // Draw city objects (not collectibles - they will be drawn last)
-      objectsRef.current.forEach((obj) => {
-        // Skip collectibles for now - we'll draw them on top later
-        if (
-          obj.type === "trash" ||
-          obj.type === "bottle" ||
-          obj.type === "can" ||
-          obj.type === "plant-spot"
-        ) {
-          return;
-        }
-
-        if (obj.type === "tree") {
-          // Enhanced tree
-          ctx.save();
-          ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
-          ctx.shadowBlur = 10;
-
-          const trunkGradient = ctx.createLinearGradient(
-            obj.x + 35,
+      const draw = () => {
+        if (gameMode === "planting") {
+          // Desert background for tree planting
+          // Sky gradient
+          const desertSkyGradient = ctx.createLinearGradient(
             0,
-            obj.x + 65,
-            0
-          );
-          trunkGradient.addColorStop(0, "#654321");
-          trunkGradient.addColorStop(1, "#8B4513");
-          ctx.fillStyle = trunkGradient;
-          ctx.fillRect(obj.x + 35, obj.y + 80, 30, 70);
-
-          const foliageGradient = ctx.createRadialGradient(
-            obj.x + 50,
-            obj.y + 60,
             0,
-            obj.x + 50,
-            obj.y + 60,
-            50
-          );
-          foliageGradient.addColorStop(0, "#32CD32");
-          foliageGradient.addColorStop(1, "#228B22");
-          ctx.fillStyle = foliageGradient;
-
-          ctx.beginPath();
-          ctx.arc(obj.x + 50, obj.y + 60, 50, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(obj.x + 30, obj.y + 70, 35, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(obj.x + 70, obj.y + 70, 35, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        } else if (obj.type === "bus") {
-          // Enhanced bus
-          ctx.save();
-          ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-          ctx.shadowBlur = 8;
-
-          const busGradient = ctx.createLinearGradient(
-            obj.x,
             0,
-            obj.x + obj.width,
-            0
+            canvas.height
           );
-          busGradient.addColorStop(0, "#FFD700");
-          busGradient.addColorStop(1, "#FFA500");
-          ctx.fillStyle = busGradient;
-          ctx.fillRect(obj.x, obj.y + 20, obj.width, 60);
-          ctx.strokeStyle = "#CC8800";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(obj.x, obj.y + 20, obj.width, 60);
+          desertSkyGradient.addColorStop(0, "#FFD89B");
+          desertSkyGradient.addColorStop(1, "#FFAA66");
+          ctx.fillStyle = desertSkyGradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          ctx.fillStyle = "#87CEEB";
-          ctx.fillRect(obj.x + 10, obj.y + 30, 30, 25);
-          ctx.fillRect(obj.x + 50, obj.y + 30, 30, 25);
-          ctx.fillRect(obj.x + 90, obj.y + 30, 30, 25);
-          ctx.strokeStyle = "#333";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(obj.x + 10, obj.y + 30, 30, 25);
-          ctx.strokeRect(obj.x + 50, obj.y + 30, 30, 25);
-          ctx.strokeRect(obj.x + 90, obj.y + 30, 30, 25);
-
-          const wheelGradient = ctx.createRadialGradient(
-            obj.x + 30,
-            obj.y + 80,
+          // Sand ground
+          const sandGradient = ctx.createLinearGradient(
             0,
-            obj.x + 30,
-            obj.y + 80,
-            12
-          );
-          wheelGradient.addColorStop(0, "#555");
-          wheelGradient.addColorStop(1, "#222");
-          ctx.fillStyle = wheelGradient;
-          ctx.beginPath();
-          ctx.arc(obj.x + 30, obj.y + 80, 12, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(obj.x + 120, obj.y + 80, 12, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = "#AAA";
-          ctx.beginPath();
-          ctx.arc(obj.x + 30, obj.y + 80, 6, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(obj.x + 120, obj.y + 80, 6, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        } else if (obj.type === "car") {
-          // Car
-          ctx.save();
-          ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-          ctx.shadowBlur = 8;
-
-          const carColors = ["#EF4444", "#3B82F6", "#10B981", "#F59E0B"];
-          const carColor = carColors[obj.variant || 0];
-
-          const carGradient = ctx.createLinearGradient(
-            obj.x,
+            canvas.height - 150,
             0,
-            obj.x + obj.width,
-            0
+            canvas.height
           );
-          carGradient.addColorStop(0, carColor);
-          carGradient.addColorStop(1, carColor + "CC");
-          ctx.fillStyle = carGradient;
-          ctx.fillRect(obj.x, obj.y + 40, obj.width, 50);
-          ctx.fillRect(obj.x + 30, obj.y + 10, obj.width - 60, 40);
+          sandGradient.addColorStop(0, "#F4C27A");
+          sandGradient.addColorStop(1, "#D4A86A");
+          ctx.fillStyle = sandGradient;
+          ctx.fillRect(0, canvas.height - 150, canvas.width, 150);
 
-          ctx.strokeStyle = "#000";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(obj.x, obj.y + 40, obj.width, 50);
-          ctx.strokeRect(obj.x + 30, obj.y + 10, obj.width - 60, 40);
-
-          ctx.fillStyle = "#87CEEB";
-          ctx.fillRect(obj.x + 40, obj.y + 15, 40, 30);
-          ctx.fillRect(obj.x + 100, obj.y + 15, 40, 30);
-
-          const carWheelGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 10);
-          carWheelGradient.addColorStop(0, "#333");
-          carWheelGradient.addColorStop(1, "#111");
-          ctx.fillStyle = carWheelGradient;
-          ctx.beginPath();
-          ctx.arc(obj.x + 40, obj.y + 90, 10, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(obj.x + 140, obj.y + 90, 10, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        } else if (obj.type === "lamp") {
-          // Street lamp
-          ctx.save();
-          ctx.shadowColor = "rgba(255, 215, 0, 0.5)";
-          ctx.shadowBlur = 20;
-
-          ctx.fillStyle = "#4A5568";
-          ctx.fillRect(obj.x + 12, obj.y + 20, 6, obj.height - 20);
-
-          ctx.fillStyle = "#FFD700";
-          ctx.beginPath();
-          ctx.arc(obj.x + 15, obj.y + 15, 12, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = "#FFF9C4";
-          ctx.beginPath();
-          ctx.arc(obj.x + 15, obj.y + 15, 8, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        } else if (obj.type === "building") {
-          // Building
-          ctx.save();
-          ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
-          ctx.shadowBlur = 15;
-
-          const buildingGradient = ctx.createLinearGradient(
-            obj.x,
-            0,
-            obj.x + obj.width,
-            0
-          );
-          buildingGradient.addColorStop(0, "#A0A0A0");
-          buildingGradient.addColorStop(1, "#707070");
-          ctx.fillStyle = buildingGradient;
-          ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-          ctx.strokeStyle = "#505050";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-
-          // Use pre-generated window states to prevent flickering
-          const rows = Math.floor(obj.height / 40);
-          const cols = Math.floor(obj.width / 40);
-          for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < cols; col++) {
-              const lightOn = obj.windowStates?.[row]?.[col] ?? false;
-              ctx.fillStyle = lightOn ? "#FFD700" : "#4A4A4A";
-              ctx.fillRect(
-                obj.x + col * 40 + 10,
-                obj.y + row * 40 + 10,
-                20,
-                25
-              );
-              ctx.strokeStyle = "#333";
-              ctx.strokeRect(
-                obj.x + col * 40 + 10,
-                obj.y + row * 40 + 10,
-                20,
-                25
-              );
-            }
+          // Sand dunes pattern
+          ctx.fillStyle = "rgba(212, 168, 106, 0.3)";
+          for (let i = 0; i < canvas.width; i += 150) {
+            ctx.beginPath();
+            ctx.ellipse(
+              i + 75,
+              canvas.height - 120,
+              100,
+              30,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
           }
 
-          ctx.fillStyle = "#8B0000";
+          // Add some cacti in the background (use cached positions)
+          ctx.fillStyle = "#2D5016";
+          cactiPositionsRef.current.forEach((cactus) => {
+            ctx.fillRect(cactus.x, cactus.y, 8, 30);
+            ctx.fillRect(cactus.x - 10, cactus.y + 10, 10, 3);
+            ctx.fillRect(cactus.x + 8, cactus.y + 10, 10, 3);
+          });
+        } else {
+          // City and ocean background for cleanup
+          // Sky gradient
+          ctx.fillStyle = skyGradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Ocean region (right 30% of canvas)
+          const oceanStartX = canvas.width * 0.7;
+          const oceanGradient = ctx.createLinearGradient(
+            oceanStartX,
+            0,
+            canvas.width,
+            canvas.height
+          );
+          oceanGradient.addColorStop(0, "#4A90E2");
+          oceanGradient.addColorStop(0.5, "#357ABD");
+          oceanGradient.addColorStop(1, "#2E5C8A");
+          ctx.fillStyle = oceanGradient;
+          ctx.fillRect(
+            oceanStartX,
+            0,
+            canvas.width - oceanStartX,
+            canvas.height
+          );
+
+          // Waves in ocean
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            const waveY = 100 + i * 80;
+            for (let x = oceanStartX; x < canvas.width; x += 30) {
+              const y = waveY + Math.sin((x + Date.now() / 500) * 0.05) * 10;
+              if (x === oceanStartX) {
+                ctx.moveTo(x, y);
+              } else {
+                ctx.lineTo(x, y);
+              }
+            }
+            ctx.stroke();
+          }
+
+          // Beach/shore area
+          ctx.fillStyle = "#F4C27A";
           ctx.beginPath();
-          ctx.moveTo(obj.x - 10, obj.y);
-          ctx.lineTo(obj.x + obj.width / 2, obj.y - 20);
-          ctx.lineTo(obj.x + obj.width + 10, obj.y);
+          ctx.moveTo(oceanStartX - 50, canvas.height - 120);
+          ctx.lineTo(oceanStartX + 50, canvas.height - 120);
+          ctx.lineTo(oceanStartX + 100, canvas.height);
+          ctx.lineTo(oceanStartX - 100, canvas.height);
           ctx.closePath();
           ctx.fill();
-          ctx.restore();
+
+          // Ground with texture for city area
+          ctx.fillStyle = groundGradient;
+          ctx.fillRect(0, canvas.height - 100, oceanStartX, 100);
+
+          // Draw road
+          ctx.fillStyle = "#4A4A4A";
+          ctx.fillRect(0, canvas.height - 120, oceanStartX, 20);
+          ctx.strokeStyle = "#FFD700";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([20, 10]);
+          ctx.beginPath();
+          ctx.moveTo(0, canvas.height - 110);
+          ctx.lineTo(oceanStartX, canvas.height - 110);
+          ctx.stroke();
+          ctx.setLineDash([]);
         }
-      });
 
-      // Draw collectibles LAST so they're always on top
-      objectsRef.current.forEach((obj) => {
-        if (obj.type === "plant-spot") {
-          if (!obj.planted) {
-            // Unplanted spot - faded and with progress ring
+        // Draw city objects (not collectibles - they will be drawn last)
+        objectsRef.current.forEach((obj) => {
+          // Skip collectibles for now - we'll draw them on top later
+          if (
+            obj.type === "trash" ||
+            obj.type === "bottle" ||
+            obj.type === "can" ||
+            obj.type === "plant-spot"
+          ) {
+            return;
+          }
+
+          if (obj.type === "tree") {
+            // Enhanced tree
             ctx.save();
-            ctx.globalAlpha = 0.5; // Make it faded
-            ctx.shadowColor = "rgba(139, 69, 19, 0.3)";
-            ctx.shadowBlur = 5;
+            ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+            ctx.shadowBlur = 10;
 
-            // Check if player is standing on this spot
+            const trunkGradient = ctx.createLinearGradient(
+              obj.x + 35,
+              0,
+              obj.x + 65,
+              0
+            );
+            trunkGradient.addColorStop(0, "#654321");
+            trunkGradient.addColorStop(1, "#8B4513");
+            ctx.fillStyle = trunkGradient;
+            ctx.fillRect(obj.x + 35, obj.y + 80, 30, 70);
+
+            const foliageGradient = ctx.createRadialGradient(
+              obj.x + 50,
+              obj.y + 60,
+              0,
+              obj.x + 50,
+              obj.y + 60,
+              50
+            );
+            foliageGradient.addColorStop(0, "#32CD32");
+            foliageGradient.addColorStop(1, "#228B22");
+            ctx.fillStyle = foliageGradient;
+
+            ctx.beginPath();
+            ctx.arc(obj.x + 50, obj.y + 60, 50, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(obj.x + 30, obj.y + 70, 35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(obj.x + 70, obj.y + 70, 35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          } else if (obj.type === "bus") {
+            // Enhanced bus
+            ctx.save();
+            ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+            ctx.shadowBlur = 8;
+
+            const busGradient = ctx.createLinearGradient(
+              obj.x,
+              0,
+              obj.x + obj.width,
+              0
+            );
+            busGradient.addColorStop(0, "#FFD700");
+            busGradient.addColorStop(1, "#FFA500");
+            ctx.fillStyle = busGradient;
+            ctx.fillRect(obj.x, obj.y + 20, obj.width, 60);
+            ctx.strokeStyle = "#CC8800";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(obj.x, obj.y + 20, obj.width, 60);
+
+            ctx.fillStyle = "#87CEEB";
+            ctx.fillRect(obj.x + 10, obj.y + 30, 30, 25);
+            ctx.fillRect(obj.x + 50, obj.y + 30, 30, 25);
+            ctx.fillRect(obj.x + 90, obj.y + 30, 30, 25);
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(obj.x + 10, obj.y + 30, 30, 25);
+            ctx.strokeRect(obj.x + 50, obj.y + 30, 30, 25);
+            ctx.strokeRect(obj.x + 90, obj.y + 30, 30, 25);
+
+            const wheelGradient = ctx.createRadialGradient(
+              obj.x + 30,
+              obj.y + 80,
+              0,
+              obj.x + 30,
+              obj.y + 80,
+              12
+            );
+            wheelGradient.addColorStop(0, "#555");
+            wheelGradient.addColorStop(1, "#222");
+            ctx.fillStyle = wheelGradient;
+            ctx.beginPath();
+            ctx.arc(obj.x + 30, obj.y + 80, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(obj.x + 120, obj.y + 80, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#AAA";
+            ctx.beginPath();
+            ctx.arc(obj.x + 30, obj.y + 80, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(obj.x + 120, obj.y + 80, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          } else if (obj.type === "car") {
+            // Car
+            ctx.save();
+            ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+            ctx.shadowBlur = 8;
+
+            const carColors = ["#EF4444", "#3B82F6", "#10B981", "#F59E0B"];
+            const carColor = carColors[obj.variant || 0];
+
+            const carGradient = ctx.createLinearGradient(
+              obj.x,
+              0,
+              obj.x + obj.width,
+              0
+            );
+            carGradient.addColorStop(0, carColor);
+            carGradient.addColorStop(1, carColor + "CC");
+            ctx.fillStyle = carGradient;
+            ctx.fillRect(obj.x, obj.y + 40, obj.width, 50);
+            ctx.fillRect(obj.x + 30, obj.y + 10, obj.width - 60, 40);
+
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(obj.x, obj.y + 40, obj.width, 50);
+            ctx.strokeRect(obj.x + 30, obj.y + 10, obj.width - 60, 40);
+
+            ctx.fillStyle = "#87CEEB";
+            ctx.fillRect(obj.x + 40, obj.y + 15, 40, 30);
+            ctx.fillRect(obj.x + 100, obj.y + 15, 40, 30);
+
+            const carWheelGradient = ctx.createRadialGradient(
+              0,
+              0,
+              0,
+              0,
+              0,
+              10
+            );
+            carWheelGradient.addColorStop(0, "#333");
+            carWheelGradient.addColorStop(1, "#111");
+            ctx.fillStyle = carWheelGradient;
+            ctx.beginPath();
+            ctx.arc(obj.x + 40, obj.y + 90, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(obj.x + 140, obj.y + 90, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          } else if (obj.type === "lamp") {
+            // Street lamp
+            ctx.save();
+            ctx.shadowColor = "rgba(255, 215, 0, 0.5)";
+            ctx.shadowBlur = 20;
+
+            ctx.fillStyle = "#4A5568";
+            ctx.fillRect(obj.x + 12, obj.y + 20, 6, obj.height - 20);
+
+            ctx.fillStyle = "#FFD700";
+            ctx.beginPath();
+            ctx.arc(obj.x + 15, obj.y + 15, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#FFF9C4";
+            ctx.beginPath();
+            ctx.arc(obj.x + 15, obj.y + 15, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          } else if (obj.type === "building") {
+            // Building
+            ctx.save();
+            ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+            ctx.shadowBlur = 15;
+
+            const buildingGradient = ctx.createLinearGradient(
+              obj.x,
+              0,
+              obj.x + obj.width,
+              0
+            );
+            buildingGradient.addColorStop(0, "#A0A0A0");
+            buildingGradient.addColorStop(1, "#707070");
+            ctx.fillStyle = buildingGradient;
+            ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+            ctx.strokeStyle = "#505050";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+
+            // Use pre-generated window states to prevent flickering
+            const rows = Math.floor(obj.height / 40);
+            const cols = Math.floor(obj.width / 40);
+            for (let row = 0; row < rows; row++) {
+              for (let col = 0; col < cols; col++) {
+                const lightOn = obj.windowStates?.[row]?.[col] ?? false;
+                ctx.fillStyle = lightOn ? "#FFD700" : "#4A4A4A";
+                ctx.fillRect(
+                  obj.x + col * 40 + 10,
+                  obj.y + row * 40 + 10,
+                  20,
+                  25
+                );
+                ctx.strokeStyle = "#333";
+                ctx.strokeRect(
+                  obj.x + col * 40 + 10,
+                  obj.y + row * 40 + 10,
+                  20,
+                  25
+                );
+              }
+            }
+
+            ctx.fillStyle = "#8B0000";
+            ctx.beginPath();
+            ctx.moveTo(obj.x - 10, obj.y);
+            ctx.lineTo(obj.x + obj.width / 2, obj.y - 20);
+            ctx.lineTo(obj.x + obj.width + 10, obj.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          }
+        });
+
+        // Draw collectibles LAST so they're always on top
+        objectsRef.current.forEach((obj) => {
+          if (obj.type === "plant-spot") {
+            if (!obj.planted) {
+              // Unplanted spot - faded and with progress ring
+              ctx.save();
+              ctx.globalAlpha = 0.5; // Make it faded
+              ctx.shadowColor = "rgba(139, 69, 19, 0.3)";
+              ctx.shadowBlur = 5;
+
+              // Check if player is standing on this spot
+              const isPlayerStanding = standingOnSpotRef.current.spot === obj;
+              const progress =
+                isPlayerStanding && standingOnSpotRef.current.startTime
+                  ? Math.min(
+                      1,
+                      (Date.now() - standingOnSpotRef.current.startTime) / 500
+                    )
+                  : 0;
+
+              // Soil circle - glow if player is standing
+              if (isPlayerStanding && progress > 0) {
+                ctx.shadowColor = "rgba(34, 197, 94, 0.6)";
+                ctx.shadowBlur = 15;
+                ctx.globalAlpha = 0.5 + progress * 0.5; // Gradually become more visible
+              }
+
+              ctx.fillStyle = "#8B4513";
+              ctx.beginPath();
+              ctx.arc(
+                obj.x + obj.width / 2,
+                obj.y + obj.height / 2,
+                obj.width / 2,
+                0,
+                Math.PI * 2
+              );
+              ctx.fill();
+
+              // Progress ring
+              if (isPlayerStanding && progress > 0) {
+                ctx.globalAlpha = 1; // Full opacity for progress ring
+                ctx.strokeStyle = "#22C55E";
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(
+                  obj.x + obj.width / 2,
+                  obj.y + obj.height / 2,
+                  obj.width / 2 + 5,
+                  -Math.PI / 2,
+                  -Math.PI / 2 + Math.PI * 2 * progress
+                );
+                ctx.stroke();
+                ctx.globalAlpha = 0.5 + progress * 0.5; // Restore for other elements
+              }
+
+              // Inner lighter circle
+              ctx.fillStyle = "#A0522D";
+              ctx.beginPath();
+              ctx.arc(
+                obj.x + obj.width / 2,
+                obj.y + obj.height / 2,
+                obj.width / 3,
+                0,
+                Math.PI * 2
+              );
+              ctx.fill();
+
+              // Planting icon
+              ctx.fillStyle = "#228B22";
+              ctx.font = "24px Arial";
+              ctx.textAlign = "center";
+              ctx.fillText(
+                "🌱",
+                obj.x + obj.width / 2,
+                obj.y + obj.height / 2 + 8
+              );
+
+              ctx.restore();
+            } else {
+              // Planted tree - fully visible and vibrant
+              ctx.save();
+              ctx.globalAlpha = 1; // Full opacity for planted trees
+              ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+              ctx.shadowBlur = 10;
+
+              const treeX = obj.x + obj.width / 2 - 50;
+              const treeY = obj.y + obj.height / 2 - 75;
+
+              const trunkGradient = ctx.createLinearGradient(
+                treeX + 35,
+                0,
+                treeX + 65,
+                0
+              );
+              trunkGradient.addColorStop(0, "#654321");
+              trunkGradient.addColorStop(1, "#8B4513");
+              ctx.fillStyle = trunkGradient;
+              ctx.fillRect(treeX + 35, treeY + 80, 30, 70);
+
+              const foliageGradient = ctx.createRadialGradient(
+                treeX + 50,
+                treeY + 60,
+                0,
+                treeX + 50,
+                treeY + 60,
+                50
+              );
+              foliageGradient.addColorStop(0, "#32CD32");
+              foliageGradient.addColorStop(1, "#228B22");
+              ctx.fillStyle = foliageGradient;
+
+              ctx.beginPath();
+              ctx.arc(treeX + 50, treeY + 60, 50, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(treeX + 30, treeY + 70, 35, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(treeX + 70, treeY + 70, 35, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+            }
+          } else if (
+            (obj.type === "trash" ||
+              obj.type === "bottle" ||
+              obj.type === "can") &&
+            !obj.collected
+          ) {
+            ctx.save();
+
+            // Check if player is standing on this trash item
             const isPlayerStanding = standingOnSpotRef.current.spot === obj;
             const progress =
               isPlayerStanding && standingOnSpotRef.current.startTime
@@ -958,712 +1100,613 @@ const GamePlay = () => {
                   )
                 : 0;
 
-            // Soil circle - glow if player is standing
+            // Make trash faded initially, more visible as player stands
+            ctx.globalAlpha = 0.6 + progress * 0.4;
+
+            // Add glow effect when collecting
             if (isPlayerStanding && progress > 0) {
               ctx.shadowColor = "rgba(34, 197, 94, 0.6)";
-              ctx.shadowBlur = 15;
-              ctx.globalAlpha = 0.5 + progress * 0.5; // Gradually become more visible
+              ctx.shadowBlur = 15 * progress;
+            } else {
+              ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+              ctx.shadowBlur = 5;
             }
 
-            ctx.fillStyle = "#8B4513";
-            ctx.beginPath();
-            ctx.arc(
-              obj.x + obj.width / 2,
-              obj.y + obj.height / 2,
-              obj.width / 2,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
 
-            // Progress ring
-            if (isPlayerStanding && progress > 0) {
-              ctx.globalAlpha = 1; // Full opacity for progress ring
-              ctx.strokeStyle = "#22C55E";
-              ctx.lineWidth = 4;
+            if (obj.type === "trash") {
+              // Trash bag
+              ctx.fillStyle = "#FF6B35";
               ctx.beginPath();
-              ctx.arc(
+              ctx.ellipse(
                 obj.x + obj.width / 2,
                 obj.y + obj.height / 2,
-                obj.width / 2 + 5,
-                -Math.PI / 2,
-                -Math.PI / 2 + Math.PI * 2 * progress
+                obj.width / 2,
+                obj.height / 2,
+                0,
+                0,
+                Math.PI * 2
               );
+              ctx.fill();
+              ctx.strokeStyle = "#D94E2A";
+              ctx.lineWidth = 3;
               ctx.stroke();
-              ctx.globalAlpha = 0.5 + progress * 0.5; // Restore for other elements
+              ctx.fillStyle = "#FFF";
+              ctx.font = "20px Arial";
+              ctx.textAlign = "center";
+              ctx.fillText(
+                "🗑️",
+                obj.x + obj.width / 2,
+                obj.y + obj.height / 2 + 7
+              );
+            } else if (obj.type === "bottle") {
+              // Bottle
+              ctx.fillStyle =
+                obj.variant === 0
+                  ? "#4A90E2"
+                  : obj.variant === 1
+                  ? "#22C55E"
+                  : "#F59E0B";
+              ctx.fillRect(obj.x + 8, obj.y, 14, obj.height);
+              ctx.fillRect(obj.x + 6, obj.y + 5, 18, obj.height - 10);
+              ctx.strokeStyle = "#000";
+              ctx.lineWidth = 2;
+              ctx.strokeRect(obj.x + 6, obj.y + 5, 18, obj.height - 10);
+              // Cap
+              ctx.fillStyle = "#333";
+              ctx.fillRect(obj.x + 8, obj.y - 3, 14, 5);
+            } else if (obj.type === "can") {
+              // Can
+              ctx.fillStyle =
+                obj.variant === 0
+                  ? "#EF4444"
+                  : obj.variant === 1
+                  ? "#3B82F6"
+                  : "#8B5CF6";
+              ctx.fillRect(
+                obj.x + 2,
+                obj.y + 5,
+                obj.width - 4,
+                obj.height - 10
+              );
+              ctx.strokeStyle = "#000";
+              ctx.lineWidth = 2;
+              ctx.strokeRect(
+                obj.x + 2,
+                obj.y + 5,
+                obj.width - 4,
+                obj.height - 10
+              );
+              // Top/bottom
+              ctx.fillStyle = "#D1D5DB";
+              ctx.fillRect(obj.x, obj.y + 3, obj.width, 4);
+              ctx.fillRect(obj.x, obj.y + obj.height - 7, obj.width, 4);
             }
 
-            // Inner lighter circle
-            ctx.fillStyle = "#A0522D";
-            ctx.beginPath();
-            ctx.arc(
-              obj.x + obj.width / 2,
-              obj.y + obj.height / 2,
-              obj.width / 3,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
-
-            // Planting icon
-            ctx.fillStyle = "#228B22";
-            ctx.font = "24px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(
-              "🌱",
-              obj.x + obj.width / 2,
-              obj.y + obj.height / 2 + 8
-            );
-
-            ctx.restore();
-          } else {
-            // Planted tree - fully visible and vibrant
-            ctx.save();
-            ctx.globalAlpha = 1; // Full opacity for planted trees
-            ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
-            ctx.shadowBlur = 10;
-
-            const treeX = obj.x + obj.width / 2 - 50;
-            const treeY = obj.y + obj.height / 2 - 75;
-
-            const trunkGradient = ctx.createLinearGradient(
-              treeX + 35,
-              0,
-              treeX + 65,
-              0
-            );
-            trunkGradient.addColorStop(0, "#654321");
-            trunkGradient.addColorStop(1, "#8B4513");
-            ctx.fillStyle = trunkGradient;
-            ctx.fillRect(treeX + 35, treeY + 80, 30, 70);
-
-            const foliageGradient = ctx.createRadialGradient(
-              treeX + 50,
-              treeY + 60,
-              0,
-              treeX + 50,
-              treeY + 60,
-              50
-            );
-            foliageGradient.addColorStop(0, "#32CD32");
-            foliageGradient.addColorStop(1, "#228B22");
-            ctx.fillStyle = foliageGradient;
-
-            ctx.beginPath();
-            ctx.arc(treeX + 50, treeY + 60, 50, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(treeX + 30, treeY + 70, 35, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(treeX + 70, treeY + 70, 35, 0, Math.PI * 2);
-            ctx.fill();
             ctx.restore();
           }
-        } else if (
-          (obj.type === "trash" ||
-            obj.type === "bottle" ||
-            obj.type === "can") &&
-          !obj.collected
+        });
+
+        // Update bad citizens (including spawning)
+        const player = playerRef.current;
+
+        // Clear sword cooldown if expired
+        if (player.swordCooldown && Date.now() > player.swordCooldown) {
+          player.swordCooldown = undefined;
+        }
+
+        if (
+          keysPressed.current.has("arrowleft") ||
+          keysPressed.current.has("a")
         ) {
-          ctx.save();
+          player.x = Math.max(0, player.x - player.speed);
+          player.direction = "left";
+        }
+        if (
+          keysPressed.current.has("arrowright") ||
+          keysPressed.current.has("d")
+        ) {
+          player.x = Math.min(
+            canvas.width - player.width,
+            player.x + player.speed
+          );
+          player.direction = "right";
+        }
+        if (
+          keysPressed.current.has("arrowup") ||
+          keysPressed.current.has("w")
+        ) {
+          player.y = Math.max(0, player.y - player.speed);
+        }
+        if (
+          keysPressed.current.has("arrowdown") ||
+          keysPressed.current.has("s")
+        ) {
+          player.y = Math.min(
+            canvas.height - player.height - 120,
+            player.y + player.speed
+          );
+        }
 
-          // Check if player is standing on this trash item
-          const isPlayerStanding = standingOnSpotRef.current.spot === obj;
-          const progress =
-            isPlayerStanding && standingOnSpotRef.current.startTime
-              ? Math.min(
-                  1,
-                  (Date.now() - standingOnSpotRef.current.startTime) / 500
-                )
-              : 0;
+        // Spawn bad citizens: 2 active max, 10 total per scene
+        const now = Date.now();
+        const activeCitizens = objectsRef.current.filter(
+          (o) => o.type === "bad-citizen" && o.alive
+        ).length;
+        if (
+          now >= nextBadSpawnAtRef.current &&
+          activeCitizens < 2 &&
+          badCitizensSpawnedRef.current < 10
+        ) {
+          const sources = objectsRef.current.filter(
+            (o) => o.type === "building" || o.type === "car" || o.type === "bus"
+          );
+          if (sources.length > 0) {
+            const source = sources[Math.floor(Math.random() * sources.length)];
+            let spawnX = source.x + source.width / 2 - 10;
+            let spawnY = source.y + source.height - 5;
+            if (source.type === "car" || source.type === "bus") {
+              const side = Math.random() > 0.5 ? "left" : "right";
+              spawnX =
+                side === "left" ? source.x - 10 : source.x + source.width + 10;
+              spawnY = source.y + source.height - 20;
+            }
 
-          // Make trash faded initially, more visible as player stands
-          ctx.globalAlpha = 0.6 + progress * 0.4;
-
-          // Add glow effect when collecting
-          if (isPlayerStanding && progress > 0) {
-            ctx.shadowColor = "rgba(34, 197, 94, 0.6)";
-            ctx.shadowBlur = 15 * progress;
+            objectsRef.current.push({
+              x: spawnX,
+              y: spawnY,
+              width: 30,
+              height: 45,
+              type: "bad-citizen",
+              direction: Math.random() > 0.5 ? "right" : "left",
+              targetX: spawnX + (Math.random() * 200 - 100),
+              targetY: spawnY - 50 + Math.random() * 100,
+              alive: true,
+              variant: badCitizensSpawnedRef.current % 2,
+            });
+            badCitizensSpawnedRef.current += 1;
+            nextBadSpawnAtRef.current = now + 3000;
           } else {
-            ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-            ctx.shadowBlur = 5;
-          }
-
-          ctx.shadowOffsetX = 2;
-          ctx.shadowOffsetY = 2;
-
-          if (obj.type === "trash") {
-            // Trash bag
-            ctx.fillStyle = "#FF6B35";
-            ctx.beginPath();
-            ctx.ellipse(
-              obj.x + obj.width / 2,
-              obj.y + obj.height / 2,
-              obj.width / 2,
-              obj.height / 2,
-              0,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
-            ctx.strokeStyle = "#D94E2A";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-            ctx.fillStyle = "#FFF";
-            ctx.font = "20px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(
-              "🗑️",
-              obj.x + obj.width / 2,
-              obj.y + obj.height / 2 + 7
-            );
-          } else if (obj.type === "bottle") {
-            // Bottle
-            ctx.fillStyle =
-              obj.variant === 0
-                ? "#4A90E2"
-                : obj.variant === 1
-                ? "#22C55E"
-                : "#F59E0B";
-            ctx.fillRect(obj.x + 8, obj.y, 14, obj.height);
-            ctx.fillRect(obj.x + 6, obj.y + 5, 18, obj.height - 10);
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(obj.x + 6, obj.y + 5, 18, obj.height - 10);
-            // Cap
-            ctx.fillStyle = "#333";
-            ctx.fillRect(obj.x + 8, obj.y - 3, 14, 5);
-          } else if (obj.type === "can") {
-            // Can
-            ctx.fillStyle =
-              obj.variant === 0
-                ? "#EF4444"
-                : obj.variant === 1
-                ? "#3B82F6"
-                : "#8B5CF6";
-            ctx.fillRect(obj.x + 2, obj.y + 5, obj.width - 4, obj.height - 10);
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(
-              obj.x + 2,
-              obj.y + 5,
-              obj.width - 4,
-              obj.height - 10
-            );
-            // Top/bottom
-            ctx.fillStyle = "#D1D5DB";
-            ctx.fillRect(obj.x, obj.y + 3, obj.width, 4);
-            ctx.fillRect(obj.x, obj.y + obj.height - 7, obj.width, 4);
-          }
-
-          ctx.restore();
-        }
-      });
-
-      // Update bad citizens (including spawning)
-      const player = playerRef.current;
-
-      // Clear sword cooldown if expired
-      if (player.swordCooldown && Date.now() > player.swordCooldown) {
-        player.swordCooldown = undefined;
-      }
-
-      if (
-        keysPressed.current.has("arrowleft") ||
-        keysPressed.current.has("a")
-      ) {
-        player.x = Math.max(0, player.x - player.speed);
-        player.direction = "left";
-      }
-      if (
-        keysPressed.current.has("arrowright") ||
-        keysPressed.current.has("d")
-      ) {
-        player.x = Math.min(
-          canvas.width - player.width,
-          player.x + player.speed
-        );
-        player.direction = "right";
-      }
-      if (keysPressed.current.has("arrowup") || keysPressed.current.has("w")) {
-        player.y = Math.max(0, player.y - player.speed);
-      }
-      if (
-        keysPressed.current.has("arrowdown") ||
-        keysPressed.current.has("s")
-      ) {
-        player.y = Math.min(
-          canvas.height - player.height - 120,
-          player.y + player.speed
-        );
-      }
-
-      // Spawn bad citizens: 2 active max, 10 total per scene
-      const now = Date.now();
-      const activeCitizens = objectsRef.current.filter(
-        (o) => o.type === "bad-citizen" && o.alive
-      ).length;
-      if (
-        now >= nextBadSpawnAtRef.current &&
-        activeCitizens < 2 &&
-        badCitizensSpawnedRef.current < 10
-      ) {
-        const sources = objectsRef.current.filter(
-          (o) => o.type === "building" || o.type === "car" || o.type === "bus"
-        );
-        if (sources.length > 0) {
-          const source = sources[Math.floor(Math.random() * sources.length)];
-          let spawnX = source.x + source.width / 2 - 10;
-          let spawnY = source.y + source.height - 5;
-          if (source.type === "car" || source.type === "bus") {
-            const side = Math.random() > 0.5 ? "left" : "right";
-            spawnX =
-              side === "left" ? source.x - 10 : source.x + source.width + 10;
-            spawnY = source.y + source.height - 20;
-          }
-
-          objectsRef.current.push({
-            x: spawnX,
-            y: spawnY,
-            width: 30,
-            height: 45,
-            type: "bad-citizen",
-            direction: Math.random() > 0.5 ? "right" : "left",
-            targetX: spawnX + (Math.random() * 200 - 100),
-            targetY: spawnY - 50 + Math.random() * 100,
-            alive: true,
-            variant: badCitizensSpawnedRef.current % 2,
-          });
-          badCitizensSpawnedRef.current += 1;
-          nextBadSpawnAtRef.current = now + 3000;
-        } else {
-          nextBadSpawnAtRef.current = now + 1000;
-        }
-      }
-
-      // Update bad citizens movement and behavior
-      objectsRef.current.forEach((obj) => {
-        if (obj.type === "bad-citizen" && obj.alive) {
-          // Move towards target
-          if (obj.targetX !== undefined && obj.targetY !== undefined) {
-            const dx = obj.targetX - obj.x;
-            const dy = obj.targetY - obj.y;
-            const distance = Math.hypot(dx, dy);
-
-            if (distance < 10) {
-              // Reached target, pick new random target
-              obj.targetX = Math.random() * (canvas.width - 200) + 100;
-              obj.targetY = Math.random() * (canvas.height - 200) + 50;
-            } else {
-              // Move towards target
-              const speed = 1.5;
-              obj.x += (dx / distance) * speed;
-              obj.y += (dy / distance) * speed;
-              obj.direction = dx > 0 ? "right" : "left";
-            }
-          }
-
-          // Random pollution behavior (every ~3 seconds per citizen)
-          if (Math.random() < 0.005) {
-            if (gameMode === "cleanup") {
-              // Throw trash back - find a collected trash nearby
-              const collectedTrash = objectsRef.current.filter(
-                (item) =>
-                  (item.type === "trash" ||
-                    item.type === "bottle" ||
-                    item.type === "can") &&
-                  item.collected &&
-                  Math.hypot(item.x - obj.x, item.y - obj.y) < 200
-              );
-
-              if (collectedTrash.length > 0) {
-                const randomTrash =
-                  collectedTrash[
-                    Math.floor(Math.random() * collectedTrash.length)
-                  ];
-                randomTrash.collected = false;
-                toast.error("Bad citizen threw trash back!", {
-                  duration: 1000,
-                });
-              }
-            } else {
-              // Cut down planted trees - find a planted tree nearby
-              const plantedTrees = objectsRef.current.filter(
-                (item) =>
-                  item.type === "plant-spot" &&
-                  item.planted &&
-                  Math.hypot(item.x - obj.x, item.y - obj.y) < 200
-              );
-
-              if (plantedTrees.length > 0) {
-                const randomTree =
-                  plantedTrees[Math.floor(Math.random() * plantedTrees.length)];
-                randomTree.planted = false;
-                toast.error("Bad citizen cut down a tree!", { duration: 1000 });
-              }
-            }
+            nextBadSpawnAtRef.current = now + 1000;
           }
         }
-      });
 
-      // Check sword collision with bad citizens
-      if (player.swordActive) {
-        const swordReach = 50;
-        const swordX =
-          player.direction === "right"
-            ? player.x + player.width
-            : player.x - swordReach;
-        const swordY = player.y + player.height / 2 - 10;
-
+        // Update bad citizens movement and behavior
         objectsRef.current.forEach((obj) => {
           if (obj.type === "bad-citizen" && obj.alive) {
-            // Check if sword hits citizen
-            const hit =
-              swordX < obj.x + obj.width &&
-              swordX + swordReach > obj.x &&
-              swordY < obj.y + obj.height &&
-              swordY + 20 > obj.y;
+            // Move towards target
+            if (obj.targetX !== undefined && obj.targetY !== undefined) {
+              const dx = obj.targetX - obj.x;
+              const dy = obj.targetY - obj.y;
+              const distance = Math.hypot(dx, dy);
 
-            if (hit) {
-              obj.alive = false;
-              toast.success("Bad citizen eliminated! 🗡️", { duration: 1000 });
-              playGameSound("collect");
+              if (distance < 10) {
+                // Reached target, pick new random target
+                obj.targetX = Math.random() * (canvas.width - 200) + 100;
+                obj.targetY = Math.random() * (canvas.height - 200) + 50;
+              } else {
+                // Move towards target
+                const speed = 1.5;
+                obj.x += (dx / distance) * speed;
+                obj.y += (dy / distance) * speed;
+                obj.direction = dx > 0 ? "right" : "left";
+              }
+            }
+
+            // Random pollution behavior (every ~3 seconds per citizen)
+            if (Math.random() < 0.005) {
+              if (gameMode === "cleanup") {
+                // Throw trash back - find a collected trash nearby
+                const collectedTrash = objectsRef.current.filter(
+                  (item) =>
+                    (item.type === "trash" ||
+                      item.type === "bottle" ||
+                      item.type === "can") &&
+                    item.collected &&
+                    Math.hypot(item.x - obj.x, item.y - obj.y) < 200
+                );
+
+                if (collectedTrash.length > 0) {
+                  const randomTrash =
+                    collectedTrash[
+                      Math.floor(Math.random() * collectedTrash.length)
+                    ];
+                  randomTrash.collected = false;
+                  toast.error("Bad citizen threw trash back!", {
+                    duration: 1000,
+                  });
+                }
+              } else {
+                // Cut down planted trees - find a planted tree nearby
+                const plantedTrees = objectsRef.current.filter(
+                  (item) =>
+                    item.type === "plant-spot" &&
+                    item.planted &&
+                    Math.hypot(item.x - obj.x, item.y - obj.y) < 200
+                );
+
+                if (plantedTrees.length > 0) {
+                  const randomTree =
+                    plantedTrees[
+                      Math.floor(Math.random() * plantedTrees.length)
+                    ];
+                  randomTree.planted = false;
+                  toast.error("Bad citizen cut down a tree!", {
+                    duration: 1000,
+                  });
+                }
+              }
             }
           }
         });
-      }
 
-      // Draw player character with better design (optimized)
-      const drawCharacter = (
-        char: Player,
-        color: string,
-        isPlayer: boolean
-      ) => {
-        // Reduce shadow operations for performance
-        ctx.save();
+        // Check sword collision with bad citizens
+        if (player.swordActive) {
+          const swordReach = 50;
+          const swordX =
+            player.direction === "right"
+              ? player.x + player.width
+              : player.x - swordReach;
+          const swordY = player.y + player.height / 2 - 10;
 
-        // Add dancing animation for winner when game is over
-        let bounceOffset = 0;
-        let armWave = 0;
-        if (gameOver) {
-          const isWinner = (isPlayer && playerWon) || (!isPlayer && !playerWon);
-          if (isWinner) {
-            const time = Date.now() / 150; // Fast bounce
-            bounceOffset = Math.sin(time) * 8; // Bounce up and down
-            armWave = Math.sin(time * 2) * 15; // Wave arms
-          }
+          objectsRef.current.forEach((obj) => {
+            if (obj.type === "bad-citizen" && obj.alive) {
+              // Check if sword hits citizen
+              const hit =
+                swordX < obj.x + obj.width &&
+                swordX + swordReach > obj.x &&
+                swordY < obj.y + obj.height &&
+                swordY + 20 > obj.y;
+
+              if (hit) {
+                obj.alive = false;
+                toast.success("Bad citizen eliminated! 🗡️", { duration: 1000 });
+                playGameSound("collect");
+              }
+            }
+          });
         }
 
-        // Body (simplified for performance)
-        ctx.fillStyle = color;
-        ctx.fillRect(
-          char.x,
-          char.y + 20 + bounceOffset,
-          char.width,
-          char.height - 20
-        );
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(
-          char.x,
-          char.y + 20 + bounceOffset,
-          char.width,
-          char.height - 20
-        );
-
-        // Head
-        ctx.fillStyle = "#FFE4B5";
-        ctx.beginPath();
-        ctx.arc(
-          char.x + char.width / 2,
-          char.y + 15 + bounceOffset,
-          15,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-        ctx.stroke();
-
-        // Eyes
-        ctx.fillStyle = "#000";
-        ctx.beginPath();
-        ctx.arc(
-          char.x + char.width / 2 - 5,
-          char.y + 12 + bounceOffset,
-          2,
-          0,
-          Math.PI * 2
-        );
-        ctx.arc(
-          char.x + char.width / 2 + 5,
-          char.y + 12 + bounceOffset,
-          2,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-
-        // Smile (bigger if winner)
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const smileRadius =
-          gameOver && ((isPlayer && playerWon) || (!isPlayer && !playerWon))
-            ? 10
-            : 8;
-        ctx.arc(
-          char.x + char.width / 2,
-          char.y + 15 + bounceOffset,
-          smileRadius,
-          0,
-          Math.PI,
-          false
-        );
-        ctx.stroke();
-
-        // Arms (with wave animation for winner)
-        ctx.fillStyle = color;
-        ctx.fillRect(char.x - 8, char.y + 30 + bounceOffset + armWave, 8, 20);
-        ctx.fillRect(
-          char.x + char.width,
-          char.y + 30 + bounceOffset - armWave,
-          8,
-          20
-        );
-        ctx.strokeRect(char.x - 8, char.y + 30 + bounceOffset + armWave, 8, 20);
-        ctx.strokeRect(
-          char.x + char.width,
-          char.y + 30 + bounceOffset - armWave,
-          8,
-          20
-        );
-
-        // Score label
-        ctx.fillStyle = "#FFF";
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 3;
-        ctx.font = "bold 14px Arial";
-        ctx.textAlign = "center";
-        ctx.strokeText(
-          char.score.toString(),
-          char.x + char.width / 2,
-          char.y - 5 + bounceOffset
-        );
-        ctx.fillText(
-          char.score.toString(),
-          char.x + char.width / 2,
-          char.y - 5 + bounceOffset
-        );
-
-        ctx.restore();
-      };
-
-      drawCharacter(player, "#00CED1", true);
-
-      // Draw bad citizens
-      objectsRef.current.forEach((obj) => {
-        if (obj.type === "bad-citizen" && obj.alive) {
+        // Draw player character with better design (optimized)
+        const drawCharacter = (
+          char: Player,
+          color: string,
+          isPlayer: boolean
+        ) => {
+          // Reduce shadow operations for performance
           ctx.save();
 
-          // Smaller character for bad citizens
-          const citizenColor = obj.variant === 0 ? "#8B4513" : "#696969";
+          // Add dancing animation for winner when game is over
+          let bounceOffset = 0;
+          let armWave = 0;
+          if (gameOver) {
+            const isWinner =
+              (isPlayer && playerWon) || (!isPlayer && !playerWon);
+            if (isWinner) {
+              const time = Date.now() / 150; // Fast bounce
+              bounceOffset = Math.sin(time) * 8; // Bounce up and down
+              armWave = Math.sin(time * 2) * 15; // Wave arms
+            }
+          }
 
-          // Body
-          ctx.fillStyle = citizenColor;
-          ctx.fillRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
+          // Body (simplified for performance)
+          ctx.fillStyle = color;
+          ctx.fillRect(
+            char.x,
+            char.y + 20 + bounceOffset,
+            char.width,
+            char.height - 20
+          );
           ctx.strokeStyle = "#000";
           ctx.lineWidth = 2;
-          ctx.strokeRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
+          ctx.strokeRect(
+            char.x,
+            char.y + 20 + bounceOffset,
+            char.width,
+            char.height - 20
+          );
 
           // Head
           ctx.fillStyle = "#FFE4B5";
           ctx.beginPath();
-          ctx.arc(obj.x + obj.width / 2, obj.y + 10, 10, 0, Math.PI * 2);
+          ctx.arc(
+            char.x + char.width / 2,
+            char.y + 15 + bounceOffset,
+            15,
+            0,
+            Math.PI * 2
+          );
           ctx.fill();
           ctx.stroke();
 
-          // Angry eyes
+          // Eyes
           ctx.fillStyle = "#000";
           ctx.beginPath();
-          ctx.arc(obj.x + obj.width / 2 - 4, obj.y + 8, 2, 0, Math.PI * 2);
-          ctx.arc(obj.x + obj.width / 2 + 4, obj.y + 8, 2, 0, Math.PI * 2);
+          ctx.arc(
+            char.x + char.width / 2 - 5,
+            char.y + 12 + bounceOffset,
+            2,
+            0,
+            Math.PI * 2
+          );
+          ctx.arc(
+            char.x + char.width / 2 + 5,
+            char.y + 12 + bounceOffset,
+            2,
+            0,
+            Math.PI * 2
+          );
           ctx.fill();
 
-          // Frown
+          // Smile (bigger if winner)
           ctx.strokeStyle = "#000";
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.arc(obj.x + obj.width / 2, obj.y + 14, 5, Math.PI, 0, true);
+          const smileRadius =
+            gameOver && ((isPlayer && playerWon) || (!isPlayer && !playerWon))
+              ? 10
+              : 8;
+          ctx.arc(
+            char.x + char.width / 2,
+            char.y + 15 + bounceOffset,
+            smileRadius,
+            0,
+            Math.PI,
+            false
+          );
           ctx.stroke();
 
-          // Arms
-          ctx.fillStyle = citizenColor;
-          ctx.fillRect(obj.x - 6, obj.y + 22, 6, 15);
-          ctx.fillRect(obj.x + obj.width, obj.y + 22, 6, 15);
-          ctx.strokeRect(obj.x - 6, obj.y + 22, 6, 15);
-          ctx.strokeRect(obj.x + obj.width, obj.y + 22, 6, 15);
+          // Arms (with wave animation for winner)
+          ctx.fillStyle = color;
+          ctx.fillRect(char.x - 8, char.y + 30 + bounceOffset + armWave, 8, 20);
+          ctx.fillRect(
+            char.x + char.width,
+            char.y + 30 + bounceOffset - armWave,
+            8,
+            20
+          );
+          ctx.strokeRect(
+            char.x - 8,
+            char.y + 30 + bounceOffset + armWave,
+            8,
+            20
+          );
+          ctx.strokeRect(
+            char.x + char.width,
+            char.y + 30 + bounceOffset - armWave,
+            8,
+            20
+          );
 
-          // "Bad" label
-          ctx.fillStyle = "#FF0000";
+          // Score label
+          ctx.fillStyle = "#FFF";
           ctx.strokeStyle = "#000";
-          ctx.lineWidth = 2;
-          ctx.font = "bold 10px Arial";
+          ctx.lineWidth = 3;
+          ctx.font = "bold 14px Arial";
           ctx.textAlign = "center";
-          ctx.strokeText("BAD", obj.x + obj.width / 2, obj.y - 3);
-          ctx.fillText("BAD", obj.x + obj.width / 2, obj.y - 3);
+          ctx.strokeText(
+            char.score.toString(),
+            char.x + char.width / 2,
+            char.y - 5 + bounceOffset
+          );
+          ctx.fillText(
+            char.score.toString(),
+            char.x + char.width / 2,
+            char.y - 5 + bounceOffset
+          );
+
+          ctx.restore();
+        };
+
+        drawCharacter(player, "#00CED1", true);
+
+        // Draw bad citizens
+        objectsRef.current.forEach((obj) => {
+          if (obj.type === "bad-citizen" && obj.alive) {
+            ctx.save();
+
+            // Smaller character for bad citizens
+            const citizenColor = obj.variant === 0 ? "#8B4513" : "#696969";
+
+            // Body
+            ctx.fillStyle = citizenColor;
+            ctx.fillRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
+
+            // Head
+            ctx.fillStyle = "#FFE4B5";
+            ctx.beginPath();
+            ctx.arc(obj.x + obj.width / 2, obj.y + 10, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Angry eyes
+            ctx.fillStyle = "#000";
+            ctx.beginPath();
+            ctx.arc(obj.x + obj.width / 2 - 4, obj.y + 8, 2, 0, Math.PI * 2);
+            ctx.arc(obj.x + obj.width / 2 + 4, obj.y + 8, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Frown
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(obj.x + obj.width / 2, obj.y + 14, 5, Math.PI, 0, true);
+            ctx.stroke();
+
+            // Arms
+            ctx.fillStyle = citizenColor;
+            ctx.fillRect(obj.x - 6, obj.y + 22, 6, 15);
+            ctx.fillRect(obj.x + obj.width, obj.y + 22, 6, 15);
+            ctx.strokeRect(obj.x - 6, obj.y + 22, 6, 15);
+            ctx.strokeRect(obj.x + obj.width, obj.y + 22, 6, 15);
+
+            // "Bad" label
+            ctx.fillStyle = "#FF0000";
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.font = "bold 10px Arial";
+            ctx.textAlign = "center";
+            ctx.strokeText("BAD", obj.x + obj.width / 2, obj.y - 3);
+            ctx.fillText("BAD", obj.x + obj.width / 2, obj.y - 3);
+
+            ctx.restore();
+          }
+        });
+
+        // Draw sword when active
+        if (player.swordActive) {
+          ctx.save();
+          const swordReach = 50;
+          const swordX =
+            player.direction === "right"
+              ? player.x + player.width
+              : player.x - swordReach;
+          const swordY = player.y + player.height / 2 - 10;
+
+          // Sword blade
+          const swordGradient = ctx.createLinearGradient(
+            swordX,
+            swordY,
+            swordX + swordReach,
+            swordY
+          );
+          swordGradient.addColorStop(0, "#C0C0C0");
+          swordGradient.addColorStop(1, "#E8E8E8");
+          ctx.fillStyle = swordGradient;
+
+          if (player.direction === "right") {
+            // Sword pointing right
+            ctx.beginPath();
+            ctx.moveTo(swordX, swordY + 10);
+            ctx.lineTo(swordX + swordReach - 10, swordY + 10);
+            ctx.lineTo(swordX + swordReach, swordY + 5);
+            ctx.lineTo(swordX + swordReach - 10, swordY);
+            ctx.lineTo(swordX, swordY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#808080";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          } else {
+            // Sword pointing left
+            ctx.beginPath();
+            ctx.moveTo(swordX + swordReach, swordY + 10);
+            ctx.lineTo(swordX + 10, swordY + 10);
+            ctx.lineTo(swordX, swordY + 5);
+            ctx.lineTo(swordX + 10, swordY);
+            ctx.lineTo(swordX + swordReach, swordY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#808080";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+
+          // Sword glow effect
+          ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
+          ctx.shadowBlur = 10;
 
           ctx.restore();
         }
-      });
 
-      // Draw sword when active
-      if (player.swordActive) {
-        ctx.save();
-        const swordReach = 50;
-        const swordX =
-          player.direction === "right"
-            ? player.x + player.width
-            : player.x - swordReach;
-        const swordY = player.y + player.height / 2 - 10;
+        // Check collision for both player and opponent
+        objectsRef.current.forEach((obj) => {
+          const isTargetType =
+            gameMode === "cleanup"
+              ? (obj.type === "trash" ||
+                  obj.type === "bottle" ||
+                  obj.type === "can") &&
+                !obj.collected
+              : obj.type === "plant-spot" && !obj.planted;
 
-        // Sword blade
-        const swordGradient = ctx.createLinearGradient(
-          swordX,
-          swordY,
-          swordX + swordReach,
-          swordY
-        );
-        swordGradient.addColorStop(0, "#C0C0C0");
-        swordGradient.addColorStop(1, "#E8E8E8");
-        ctx.fillStyle = swordGradient;
+          if (isTargetType) {
+            // Player collision
+            const playerColliding =
+              player.x < obj.x + obj.width &&
+              player.x + player.width > obj.x &&
+              player.y < obj.y + obj.height &&
+              player.y + player.height > obj.y;
 
-        if (player.direction === "right") {
-          // Sword pointing right
-          ctx.beginPath();
-          ctx.moveTo(swordX, swordY + 10);
-          ctx.lineTo(swordX + swordReach - 10, swordY + 10);
-          ctx.lineTo(swordX + swordReach, swordY + 5);
-          ctx.lineTo(swordX + swordReach - 10, swordY);
-          ctx.lineTo(swordX, swordY);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = "#808080";
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        } else {
-          // Sword pointing left
-          ctx.beginPath();
-          ctx.moveTo(swordX + swordReach, swordY + 10);
-          ctx.lineTo(swordX + 10, swordY + 10);
-          ctx.lineTo(swordX, swordY + 5);
-          ctx.lineTo(swordX + 10, swordY);
-          ctx.lineTo(swordX + swordReach, swordY);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = "#808080";
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
+            if (playerColliding) {
+              if (gameMode === "cleanup") {
+                // Cleanup: need to stand for 500ms
+                const now = Date.now();
 
-        // Sword glow effect
-        ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-        ctx.shadowBlur = 10;
+                if (standingOnSpotRef.current.spot === obj) {
+                  // Still standing on same spot
+                  if (
+                    standingOnSpotRef.current.startTime &&
+                    now - standingOnSpotRef.current.startTime >= 500
+                  ) {
+                    // 500ms elapsed - collect the trash!
+                    obj.collected = true;
+                    toast.success("+1 Trash!", { duration: 800 });
+                    player.score += 1;
+                    setScore((prev) => prev + 1);
+                    playGameSound("collect");
 
-        ctx.restore();
-      }
-
-      // Check collision for both player and opponent
-      objectsRef.current.forEach((obj) => {
-        const isTargetType =
-          gameMode === "cleanup"
-            ? (obj.type === "trash" ||
-                obj.type === "bottle" ||
-                obj.type === "can") &&
-              !obj.collected
-            : obj.type === "plant-spot" && !obj.planted;
-
-        if (isTargetType) {
-          // Player collision
-          const playerColliding =
-            player.x < obj.x + obj.width &&
-            player.x + player.width > obj.x &&
-            player.y < obj.y + obj.height &&
-            player.y + player.height > obj.y;
-
-          if (playerColliding) {
-            if (gameMode === "cleanup") {
-              // Cleanup: need to stand for 500ms
-              const now = Date.now();
-
-              if (standingOnSpotRef.current.spot === obj) {
-                // Still standing on same spot
-                if (
-                  standingOnSpotRef.current.startTime &&
-                  now - standingOnSpotRef.current.startTime >= 500
-                ) {
-                  // 500ms elapsed - collect the trash!
-                  obj.collected = true;
-                  toast.success("+1 Trash!", { duration: 800 });
-                  player.score += 1;
-                  setScore((prev) => prev + 1);
-                  playGameSound("collect");
-
-                  // Reset standing state
-                  standingOnSpotRef.current = { spot: null, startTime: null };
+                    // Reset standing state
+                    standingOnSpotRef.current = { spot: null, startTime: null };
+                  }
+                } else {
+                  // Just arrived at this spot
+                  standingOnSpotRef.current = { spot: obj, startTime: now };
                 }
               } else {
-                // Just arrived at this spot
-                standingOnSpotRef.current = { spot: obj, startTime: now };
+                // Tree planting: need to stand for 500ms
+                const now = Date.now();
+
+                if (standingOnSpotRef.current.spot === obj) {
+                  // Still standing on same spot
+                  if (
+                    standingOnSpotRef.current.startTime &&
+                    now - standingOnSpotRef.current.startTime >= 500
+                  ) {
+                    // 500ms elapsed - plant the tree!
+                    obj.planted = true;
+                    toast.success("+1 Tree Planted! 🌳", { duration: 800 });
+                    player.score += 1;
+                    setScore((prev) => prev + 1);
+                    playGameSound("collect");
+
+                    // Reset standing state
+                    standingOnSpotRef.current = { spot: null, startTime: null };
+                  }
+                } else {
+                  // Just arrived at this spot
+                  standingOnSpotRef.current = { spot: obj, startTime: now };
+                }
               }
             } else {
-              // Tree planting: need to stand for 500ms
-              const now = Date.now();
-
+              // Not colliding with this spot - reset if it was the standing spot
               if (standingOnSpotRef.current.spot === obj) {
-                // Still standing on same spot
-                if (
-                  standingOnSpotRef.current.startTime &&
-                  now - standingOnSpotRef.current.startTime >= 500
-                ) {
-                  // 500ms elapsed - plant the tree!
-                  obj.planted = true;
-                  toast.success("+1 Tree Planted! 🌳", { duration: 800 });
-                  player.score += 1;
-                  setScore((prev) => prev + 1);
-                  playGameSound("collect");
-
-                  // Reset standing state
-                  standingOnSpotRef.current = { spot: null, startTime: null };
-                }
-              } else {
-                // Just arrived at this spot
-                standingOnSpotRef.current = { spot: obj, startTime: now };
+                standingOnSpotRef.current = { spot: null, startTime: null };
               }
             }
-          } else {
-            // Not colliding with this spot - reset if it was the standing spot
-            if (standingOnSpotRef.current.spot === obj) {
-              standingOnSpotRef.current = { spot: null, startTime: null };
-            }
           }
+        });
+
+        // Check if game is complete (all items collected/planted)
+        checkGameComplete();
+
+        animationFrameRef.current = requestAnimationFrame(draw);
+      };
+
+      draw();
+
+      return () => {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
         }
-      });
-
-      // Check if game is complete (all items collected/planted)
-      checkGameComplete();
-
-      animationFrameRef.current = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [gameStarted, gameOver, selectedLevel, gameMode, isPaused]);
+      };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [gameStarted, gameOver, selectedLevel, gameMode, isPaused]
+  );
 
   const startGame = () => {
     const settings = getLevelSettings(selectedLevel, currentScene);

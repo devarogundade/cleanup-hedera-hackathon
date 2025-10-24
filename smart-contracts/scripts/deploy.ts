@@ -9,37 +9,38 @@ async function main() {
 
   console.log("Deploying contracts with:", deployer.address);
 
-  const Factory = await ethers.getContractFactory("Factory");
-  const factory = await Factory.deploy(deployer.address);
-  await factory.waitForDeployment();
+  const Land = await ethers.getContractFactory("Land");
+  const land = await Land.deploy(deployer.address, {
+    maxSupply: 144,
+    unitValue: ethers.parseUnits("5", 8),
+    squareMeters: 10,
+    latitude: 340_195,
+    longitude: -1_184_912,
+    votingPowerBps: 10_000_000_000,
+  });
+  await land.waitForDeployment();
 
-  console.log("Deployed factory:", await factory.getAddress());
+  console.log("Deployed land:", await land.getAddress());
 
-  await factory.newRound();
-
-  console.log("New round created.");
-
-  const tx = await factory.createLand(
+  await land.createUnderlying(
+    "Coastal Cleanup - Santa Monica Beach",
+    "CCSMB",
     7_776_000,
     {
-      name: "Coastal Cleanup - Santa Monica Beach",
-      symbol: "CCSMB",
-      maxSupply: 144,
-      unitValue: ethers.parseUnits("5", 8),
-      squareMeters: 10,
-      latitude: 340_195,
-      longitude: -1_184_912,
-      votingPowerBps: 10_000_000_000,
-    },
-    { value: ethers.parseEther("10"), gasLimit: 1_000_000 }
+      value: ethers.parseEther("10"),
+      gasLimit: 3_000_000,
+    }
   );
 
-  const receipt = await tx.wait(1);
-
-  console.log("Land created.", receipt);
+  console.log("Created Underlying NFT");
 }
 
 main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+
+// Deploying contracts with: 0x2531dCd3dC58559c19EEE09736443D026D40d5f5
+// Deployed land: 0x6D3DA74c8601191F6a61989AF86B220c314C6FC9
+// Created Underlying NFT

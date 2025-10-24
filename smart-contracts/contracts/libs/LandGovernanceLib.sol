@@ -11,7 +11,7 @@ library LandGovernanceLib {
     // STORAGE SLOT
     // ---------------------------------------------------------------------
     bytes32 internal constant STORAGE_SLOT =
-        keccak256("earth3.land.governance.storage");
+        keccak256("cleanup.land.governance.storage");
 
     // ---------------------------------------------------------------------
     // STORAGE STRUCT
@@ -30,7 +30,7 @@ library LandGovernanceLib {
     // ---------------------------------------------------------------------
     // CONSTANTS
     // ---------------------------------------------------------------------
-    int64 internal constant MAX_VOTING_POWER_BPS = 100_000_000;
+    int64 internal constant VOTING_POWER_BPS = 100_000_000;
 
     // ---------------------------------------------------------------------
     // INTERNAL FUNCTION TO ACCESS STORAGE
@@ -46,8 +46,7 @@ library LandGovernanceLib {
     // INITIALIZER
     // ---------------------------------------------------------------------
     function initialize(int64 _votingPowerBPS) internal {
-        if (_votingPowerBPS == 0 || _votingPowerBPS > MAX_VOTING_POWER_BPS)
-            revert LandInterface.InvalidBPS();
+        if (_votingPowerBPS == 0) revert LandInterface.InvalidBPS();
 
         Storage storage gs = s();
         gs.votingPowerBps = _votingPowerBPS;
@@ -105,7 +104,7 @@ library LandGovernanceLib {
         if (validator == address(0)) revert LandInterface.InvalidAddress();
         if (!gs.isValidator[validator]) revert LandInterface.NotRegistered();
 
-        votingPower = (amount * gs.votingPowerBps) / MAX_VOTING_POWER_BPS;
+        votingPower = (amount * gs.votingPowerBps) / VOTING_POWER_BPS;
 
         gs.delegatedVotingPowers[validator] += votingPower;
         gs.votingPowerPerVoter[voter] += votingPower;
