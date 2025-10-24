@@ -211,7 +211,7 @@ export const useDonation = () => {
           creator: roundMetadata.contractId,
           description: `Cleanup fraction at ${roundMetadata.location.name}`,
           image: publicUrl,
-          type: "image/jpeg",
+          type: "image/jpg",
           format: "HIP412@2.0.0",
           properties: {
             row: fraction.row,
