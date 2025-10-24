@@ -9,7 +9,7 @@ export interface Transaction {
   currency: string;
   fractionCount: number;
   xpEarned: number;
-  transactionHash: string;
+  transactionId: string;
   createdAt: string;
   status: string;
   type?: string;
@@ -42,7 +42,7 @@ export const useTransactions = (userId?: string, limit: number = 10) => {
         currency: transaction.currency,
         fractionCount: transaction.fraction_ids?.length || 0,
         xpEarned: transaction.xp_earned,
-        transactionHash: transaction.transaction_hash,
+        transactionId: transaction.transaction_id,
         createdAt: transaction.created_at,
         status: transaction.status,
         type: transaction.type || "donation",
@@ -80,7 +80,7 @@ export const useRecentTransactions = (limit: number = 10) => {
         currency: transaction.currency,
         fractionCount: transaction.fraction_ids?.length || 0,
         xpEarned: transaction.xp_earned,
-        transactionHash: transaction.transaction_hash,
+        transactionId: transaction.transaction_id,
         createdAt: transaction.created_at,
         status: transaction.status,
         type: transaction.type || "donation",

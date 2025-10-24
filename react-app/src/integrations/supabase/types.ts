@@ -409,7 +409,7 @@ export type Database = {
           ngo_id: string;
           round_id: number;
           status: string;
-          transaction_hash: string;
+          transaction_id: string;
           type: string;
           user_id: string;
           voting_power: number;
@@ -428,7 +428,7 @@ export type Database = {
           ngo_id: string;
           round_id: number;
           status?: string;
-          transaction_hash: string;
+          transaction_id: string;
           type?: string;
           user_id: string;
           voting_power: number;
@@ -447,7 +447,7 @@ export type Database = {
           ngo_id?: string;
           round_id?: number;
           status?: string;
-          transaction_hash?: string;
+          transaction_id?: string;
           type?: string;
           user_id?: string;
           voting_power?: number;

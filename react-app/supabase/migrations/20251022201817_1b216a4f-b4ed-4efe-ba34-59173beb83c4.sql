@@ -73,7 +73,7 @@ CREATE TABLE public.donations (
   amount_in_hbar DECIMAL NOT NULL,
   amount_in_ngn DECIMAL NOT NULL,
   fraction_ids INTEGER[] NOT NULL,
-  transaction_hash TEXT NOT NULL,
+  transaction_id TEXT NOT NULL,
   nft_token_ids TEXT[],
   xp_earned INTEGER NOT NULL,
   voting_power INTEGER NOT NULL,

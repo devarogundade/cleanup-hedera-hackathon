@@ -68,8 +68,11 @@ const Donate = () => {
   };
 
   const currencyLogo =
-    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : 
-    currency === APP_CONFIG.XP_CURRENCY ? null : ngnLogo;
+    currency === APP_CONFIG.HBAR_CURRENCY
+      ? hbarLogo
+      : currency === APP_CONFIG.XP_CURRENCY
+      ? null
+      : ngnLogo;
 
   const { data: ngos, isLoading: ngosLoading } = useNGOs();
   const { data: votesByNgo, isLoading: votesLoading } =
@@ -82,9 +85,7 @@ const Donate = () => {
     })) || [];
 
   const totalVotes = ngosWithVotes.reduce((sum, ngo) => sum + ngo.votes, 0);
-  const selectedNGOData = ngosWithVotes.find(
-    (n) => n.id === selectedNGO
-  );
+  const selectedNGOData = ngosWithVotes.find((n) => n.id === selectedNGO);
 
   // Calculate updated votes for selected NGO
   const getUpdatedVotes = (ngoId: string) => {
@@ -465,7 +466,7 @@ const Donate = () => {
         currency={currency as "HBAR" | "NGN" | "XP"}
         ngoName={selectedNGOData?.name || ""}
         roundType={roundMetadata?.type}
-        transactionHash={transactionData?.transactionHash}
+        transactionId={transactionData?.transactionId}
         xpEarned={transactionData?.xpEarned}
       />
     </div>

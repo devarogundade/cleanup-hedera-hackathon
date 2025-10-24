@@ -148,7 +148,7 @@ const TrashSiteVisualization = ({
   return (
     <>
       <Card className="trash-site-visualization border-0 p-4 overflow-hidden select-none">
-        {roundEnded && (
+        {roundEnded ? (
           <div className="mb-4 p-3 bg-secondary rounded-lg space-y-2">
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-primary" />
@@ -183,14 +183,23 @@ const TrashSiteVisualization = ({
               </div>
             </div>
           </div>
+        ) : (
+          <div className="flex items-center gap-1 col-span-2">
+            <FileText className="w-3 h-3" />
+            <span className="text-muted-foreground">Contract:</span>
+            <span className="font-mono text-xs">
+              {roundMetadata.contractId}
+            </span>
+          </div>
         )}
+
         <div className="mb-3 sm:mb-4 space-y-3 sm:space-y-4">
           <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
             <div className="flex-1 w-full sm:w-auto">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                 <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
-                  {isTreePlanting ? "Tree Planting" : "Cleanup"} Zone #
-                  {40 + round} - Round {round}
+                  {isTreePlanting ? "Tree Planting" : "Cleanup"} Zone #{round} -
+                  Round {round}
                 </h3>
                 {!roundEnded && (
                   <Badge
@@ -409,7 +418,9 @@ const TrashSiteVisualization = ({
                         : "cursor-pointer hover:opacity-50 hover:stroke-primary"
                     }`}
                     onClick={() =>
-                      !isNotAllowed && !isDonated && handleFractionClick(fraction)
+                      !isNotAllowed &&
+                      !isDonated &&
+                      handleFractionClick(fraction)
                     }
                   />
                   {isDonated && (
@@ -511,7 +522,11 @@ const TrashSiteVisualization = ({
         onDonate={handleAddToDonation}
         onRemove={handleRemoveFromDonation}
         isSelected={
-          dialogFraction ? mintableFractions.some(m => m.position === dialogFraction.position) : false
+          dialogFraction
+            ? mintableFractions.some(
+                (m) => m.position === dialogFraction.position
+              )
+            : false
         }
       />
     </>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -6,13 +7,19 @@ import { RewardService } from "@/services/rewardService";
 import { executeTransaction } from "@/services/hashconnect";
 import {
   AccountId,
+  ContractCallQuery,
   ContractExecuteTransaction,
   ContractFunctionParameters,
+  Hbar,
+  TokenAssociateTransaction,
+  TokenId,
+  TransactionReceipt,
 } from "@hashgraph/sdk";
 import { MintableFraction, RoundMetadata } from "@/types";
 import { ethers } from "ethers";
 import { APP_CONFIG } from "@/data/constants";
 import { PaystackService } from "@/services/paystackService";
+import { testnetClient } from "@/services/hederaclient";
 
 interface DonationParams {
   accountId: string;
@@ -61,15 +68,15 @@ export const useDonation = () => {
       }
 
       // Handle NGN payment with Paystack
-      if (currency === "NGN") {
+      if (currency === APP_CONFIG.NGN_CURRENCY) {
         onProgress("Processing payment with Paystack...");
 
         // Calculate amount in NGN
         const amountInNGN = amount * APP_CONFIG.NGN_TO_HBAR_RATE;
 
         // Get user email (use a default or prompt if not available)
-        const userEmail = profile.username 
-          ? `${profile.username.toLowerCase().replace(/\s+/g, '')}@cleanup.app`
+        const userEmail = profile.username
+          ? `${profile.username.toLowerCase().replace(/\s+/g, "")}@cleanup.app`
           : `${accountId}@cleanup.app`;
 
         // Wait for Paystack payment
@@ -78,7 +85,7 @@ export const useDonation = () => {
             PaystackService.initializePayment({
               email: userEmail,
               amount: amountInNGN,
-              currency: "NGN",
+              currency: APP_CONFIG.NGN_CURRENCY,
               metadata: {
                 account_id: accountId,
                 round_id: roundMetadata.id,
@@ -89,7 +96,9 @@ export const useDonation = () => {
                 console.log("Paystack payment successful:", transaction);
                 toast({
                   title: "Payment Successful",
-                  description: `NGN ${amountInNGN.toFixed(2)} payment confirmed`,
+                  description: `NGN ${amountInNGN.toFixed(
+                    2
+                  )} payment confirmed`,
                 });
                 resolve();
               },
@@ -104,22 +113,48 @@ export const useDonation = () => {
       }
 
       // If paying with XP, check balance and deduct
-      if (currency === "XP") {
+      if (currency === APP_CONFIG.XP_CURRENCY) {
         const xpCost = amount;
         if (profile.total_xp < xpCost) {
-          throw new Error(`Insufficient XP. You need ${xpCost} XP but only have ${profile.total_xp} XP`);
+          throw new Error(
+            `Insufficient XP. You need ${xpCost} XP but only have ${profile.total_xp} XP`
+          );
         }
-        
+
         // Deduct XP from user profile
         const { error: xpDeductError } = await supabase
           .from("profiles")
           .update({ total_xp: profile.total_xp - xpCost })
           .eq("account_id", accountId);
-          
-        if (xpDeductError) throw new Error("Failed to deduct XP from your balance");
+
+        if (xpDeductError)
+          throw new Error("Failed to deduct XP from your balance");
       }
 
-      onProgress("Uploading fraction images...");
+      onProgress("Associating to NFT...");
+
+      const client = testnetClient();
+
+      const tokenIdCall = new ContractCallQuery()
+        .setContractId(roundMetadata?.contractId)
+        .setFunction("underlying");
+
+      const result = await tokenIdCall.execute(client);
+      const tokenAddress = result.getAddress(0);
+
+      console.log({
+        tokenId: TokenId.fromSolidityAddress(tokenAddress.replace("0x", "")),
+      });
+
+      const associateTx = new TokenAssociateTransaction()
+        .setAccountId(accountId)
+        .setTokenIds([
+          TokenId.fromSolidityAddress(tokenAddress.replace("0x", "")),
+        ]);
+
+      await executeTransaction(accountId, associateTx);
+
+      onProgress("Creating NFT metadata...");
 
       // Helper to convert Uint8Array to base64
       const toBase64 = (u8: Uint8Array) => {
@@ -139,19 +174,21 @@ export const useDonation = () => {
         const imagePath = `round-${roundMetadata.id}/fraction-${fraction.position}.jpg`;
 
         // Upload image via Edge Function (service role)
-        const { data: imageUpload, error: imageInvokeError } = await supabase.functions.invoke(
-          "upload-to-storage",
-          {
+        const { data: imageUpload, error: imageInvokeError } =
+          await supabase.functions.invoke("upload-to-storage", {
             body: {
               bucket: "cleanup",
               path: imagePath,
               base64: imageBase64,
               contentType: "image/jpeg",
             },
-          }
-        );
+          });
         if (imageInvokeError || !(imageUpload as any)?.publicUrl) {
-          throw new Error(`Failed to upload image: ${imageInvokeError?.message || "no URL returned"}`);
+          throw new Error(
+            `Failed to upload image: ${
+              imageInvokeError?.message || "no URL returned"
+            }`
+          );
         }
         const publicUrl = (imageUpload as any).publicUrl as string;
 
@@ -177,19 +214,21 @@ export const useDonation = () => {
         const metadataJson = JSON.stringify(nftMetadata);
         const metadataBase64 = btoa(unescape(encodeURIComponent(metadataJson)));
 
-        const { data: metaUpload, error: metaInvokeError } = await supabase.functions.invoke(
-          "upload-to-storage",
-          {
+        const { data: metaUpload, error: metaInvokeError } =
+          await supabase.functions.invoke("upload-to-storage", {
             body: {
               bucket: "cleanup",
               path: metadataPath,
               base64: metadataBase64,
               contentType: "application/json",
             },
-          }
-        );
+          });
         if (metaInvokeError || !(metaUpload as any)?.publicUrl) {
-          throw new Error(`Failed to upload metadata: ${metaInvokeError?.message || "no URL returned"}`);
+          throw new Error(
+            `Failed to upload metadata: ${
+              metaInvokeError?.message || "no URL returned"
+            }`
+          );
         }
         const metadataUrl = (metaUpload as any).publicUrl as string;
 
@@ -200,15 +239,23 @@ export const useDonation = () => {
 
       const tx = new ContractExecuteTransaction()
         .setContractId(roundMetadata?.contractId)
+        .setPayableAmount(new Hbar(amount))
         .setFunction(
           "mint",
           new ContractFunctionParameters()
             .addBytesArray(metadata)
-            .addString(ngoId)
+            .addString(AccountId.fromString(ngoId).toEvmAddress())
             .addAddress(AccountId.fromString(accountId).toEvmAddress())
         );
 
-      const txResponse = await executeTransaction(accountId, tx);
+      let txReceipt: TransactionReceipt | null = null;
+
+      if (currency === APP_CONFIG.HBAR_CURRENCY) {
+        txReceipt = (await executeTransaction(accountId, tx)) as any;
+      } else {
+        const txResponse = await tx.execute(client);
+        txReceipt = await txResponse.getReceipt(client);
+      }
 
       // Convert to HBAR based on currency
       const amountInHBAR =
@@ -217,7 +264,7 @@ export const useDonation = () => {
           : currency === APP_CONFIG.XP_CURRENCY
           ? amount / APP_CONFIG.HBAR_TO_XP_RATE
           : amount / APP_CONFIG.NGN_TO_HBAR_RATE;
-          
+
       const amountInNGN =
         currency === APP_CONFIG.NGN_CURRENCY
           ? amount
@@ -228,8 +275,10 @@ export const useDonation = () => {
       // Calculate XP (10 XP per fraction)
       const xpEarned = fractions.length * 10;
 
+      console.log({ txReceipt });
+
       const fractionPositions = fractions.map((f) => f.position);
-      const nftTokenIds = txResponse.serials.map(Number);
+      const nftTokenIds = txReceipt.serials.map(Number);
 
       // Create transaction record
       const transactionPayload = {
@@ -245,7 +294,7 @@ export const useDonation = () => {
         ngo_id: ngoId,
         voting_power: votingPower,
         xp_earned: xpEarned,
-        transaction_hash: txResponse.topicId.toString(),
+        transaction_id: tx.transactionId.toString(),
         message: message || `Donated ${fractionPositions.length} fractions`,
         status: "confirmed" as const,
       };
@@ -398,7 +447,7 @@ export const useDonation = () => {
 
       return {
         transaction,
-        transactionHash: txResponse.topicId.toString(),
+        transactionId: tx.transactionId.toString(),
         xpEarned,
         nftTokenIds,
         unlockedAchievements,

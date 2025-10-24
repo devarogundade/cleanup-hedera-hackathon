@@ -20,7 +20,7 @@ export interface Donation {
   amount: DonationAmount;
   ngoId: string;
   votingPower: number;
-  transactionHash: string;
+  transactionId: string;
   nftTokenIds: string[];
   xpEarned: number;
   createdAt: string;
@@ -47,7 +47,7 @@ export interface DonationRequest {
 export interface DonationResponse {
   success: boolean;
   donation?: Donation;
-  transactionHash?: string;
+  transactionId?: string;
   xpEarned?: number;
   nftTokenIds?: string[];
   error?: string;

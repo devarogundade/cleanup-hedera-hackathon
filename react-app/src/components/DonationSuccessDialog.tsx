@@ -21,7 +21,7 @@ interface DonationSuccessDialogProps {
   currency: "HBAR" | "NGN" | "XP";
   ngoName: string;
   roundType?: string;
-  transactionHash?: string;
+  transactionId?: string;
   xpEarned?: number;
 }
 
@@ -33,7 +33,7 @@ const DonationSuccessDialog = ({
   currency,
   ngoName,
   roundType = "cleanup",
-  transactionHash,
+  transactionId,
   xpEarned,
 }: DonationSuccessDialogProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
@@ -67,8 +67,11 @@ const DonationSuccessDialog = ({
   };
 
   const currencyLogo =
-    currency === APP_CONFIG.HBAR_CURRENCY ? hbarLogo : 
-    currency === APP_CONFIG.XP_CURRENCY ? null : ngnLogo;
+    currency === APP_CONFIG.HBAR_CURRENCY
+      ? hbarLogo
+      : currency === APP_CONFIG.XP_CURRENCY
+      ? null
+      : ngnLogo;
 
   useEffect(() => {
     if (!open) {
@@ -79,7 +82,7 @@ const DonationSuccessDialog = ({
     if (showConfetti) return;
 
     setShowConfetti(true);
-    
+
     // Trigger confetti with cleanup
     const duration = 3000;
     const end = Date.now() + duration;
@@ -141,7 +144,11 @@ const DonationSuccessDialog = ({
               <div className="text-right">
                 <span className="text-2xl font-bold text-gradient flex items-center gap-2 justify-end">
                   {currencyLogo ? (
-                    <img src={currencyLogo} alt={currency} className="w-6 h-6 rounded-full" />
+                    <img
+                      src={currencyLogo}
+                      alt={currency}
+                      className="w-6 h-6 rounded-full"
+                    />
                   ) : (
                     <Sparkles className="w-6 h-6 text-accent" />
                   )}
@@ -221,7 +228,7 @@ const DonationSuccessDialog = ({
               variant="secondary"
               className="flex-1"
               onClick={() => {
-                const hash = transactionHash || "mock";
+                const hash = transactionId || "mock";
                 window.open(
                   `https://hashscan.io/testnet/transaction/${hash}`,
                   "_blank"
