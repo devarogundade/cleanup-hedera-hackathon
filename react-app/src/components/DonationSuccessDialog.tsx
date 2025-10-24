@@ -191,7 +191,7 @@ const DonationSuccessDialog = ({
             </div>
           </div>
 
-          <div className="bg-secondary rounded-lg p-4 space-y-3">
+          <div className="bg-secondary/10 rounded-lg p-4 space-y-3">
             <div className="flex items-start gap-3">
               <Sparkles className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
               <div>

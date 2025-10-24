@@ -6,7 +6,7 @@ export const testnetClient = (): Client => {
 
   client.setOperator(
     AccountId.fromString(import.meta.env.VITE_OPERATOR_ACCOUNT_ID),
-    PrivateKey.fromString(import.meta.env.VITE_OPERATOR_ACCOUNT_PK)
+    PrivateKey.fromStringECDSA(import.meta.env.VITE_OPERATOR_ACCOUNT_PK)
   );
 
   //Set the default maximum transaction fee (in Hbar)

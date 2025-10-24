@@ -28,10 +28,13 @@ export const useUserRewards = (accountId: string | undefined) => {
       // Use accountId directly since it's now the primary key
       const { data, error } = await supabase
         .from("user_rewards")
-        .select(`
+        .select(
+          `
           *,
           rewards (*)
-        `)
+        `
+        )
+        .order("id", { ascending: true })
         .eq("user_id", accountId);
 
       if (error) throw error;
@@ -114,7 +117,7 @@ export const useClaimReward = () => {
     }) => {
       // Use accountId directly since it's now the primary key
       const result = await RewardService.claimReward(accountId, rewardId);
-      
+
       if (!result.success) {
         throw new Error(result.error || "Failed to claim reward");
       }
@@ -122,9 +125,11 @@ export const useClaimReward = () => {
       return result;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["user-rewards", variables.accountId] });
+      queryClient.invalidateQueries({
+        queryKey: ["user-rewards", variables.accountId],
+      });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      
+
       toast({
         title: "Reward Claimed!",
         description: "Your reward has been successfully claimed.",

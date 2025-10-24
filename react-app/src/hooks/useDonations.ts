@@ -7,9 +7,12 @@ import { RewardService } from "@/services/rewardService";
 import { executeTransaction } from "@/services/hashconnect";
 import {
   AccountId,
+  AccountInfoQuery,
   ContractCallQuery,
   ContractExecuteTransaction,
   ContractFunctionParameters,
+  ContractId,
+  EvmAddress,
   Hbar,
   TokenAssociateTransaction,
   TokenId,
@@ -20,6 +23,7 @@ import { ethers } from "ethers";
 import { APP_CONFIG } from "@/data/constants";
 import { PaystackService } from "@/services/paystackService";
 import { testnetClient } from "@/services/hederaclient";
+import TokenAssociation from "node_modules/@hashgraph/sdk/lib/token/TokenAssociation";
 
 interface DonationParams {
   accountId: string;
@@ -131,28 +135,37 @@ export const useDonation = () => {
           throw new Error("Failed to deduct XP from your balance");
       }
 
-      onProgress("Associating to NFT...");
-
       const client = testnetClient();
 
-      const tokenIdCall = new ContractCallQuery()
-        .setContractId(roundMetadata?.contractId)
-        .setFunction("underlying");
+      const tokenIdCallQuery = new ContractCallQuery()
+        .setContractId(ContractId.fromString(roundMetadata.contractId))
+        .setFunction("underlying")
+        .setGas(100_000);
 
-      const result = await tokenIdCall.execute(client);
+      const result = await tokenIdCallQuery.execute(client);
       const tokenAddress = result.getAddress(0);
 
-      console.log({
-        tokenId: TokenId.fromSolidityAddress(tokenAddress.replace("0x", "")),
-      });
+      const accountInfoQuery = new AccountInfoQuery().setAccountId(
+        AccountId.fromString(accountId)
+      );
 
-      const associateTx = new TokenAssociateTransaction()
-        .setAccountId(accountId)
-        .setTokenIds([
-          TokenId.fromSolidityAddress(tokenAddress.replace("0x", "")),
-        ]);
+      const accountInfo = await accountInfoQuery.execute(client);
 
-      await executeTransaction(accountId, associateTx);
+      const tokenRelationship = accountInfo.tokenRelationships.get(
+        TokenId.fromEvmAddress(0, 0, tokenAddress.replace("0x", ""))
+      );
+
+      if (!tokenRelationship) {
+        onProgress("Associating to NFT...");
+
+        const associateTx = new TokenAssociateTransaction()
+          .setAccountId(AccountId.fromString(accountId))
+          .setTokenIds([
+            TokenId.fromEvmAddress(0, 0, tokenAddress.replace("0x", "")),
+          ]);
+
+        await executeTransaction(accountId, associateTx);
+      }
 
       onProgress("Creating NFT metadata...");
 
@@ -237,22 +250,34 @@ export const useDonation = () => {
 
       onProgress("Minting NFTs...");
 
+      const ngoAccountReq = await fetch(
+        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${ngoId}`
+      );
+      const ngoAccount = await ngoAccountReq.json();
+
+      const userAccountReq = await fetch(
+        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${accountId}`
+      );
+      const userAccount = await userAccountReq.json();
+
       const tx = new ContractExecuteTransaction()
-        .setContractId(roundMetadata?.contractId)
+        .setContractId(ContractId.fromString(roundMetadata?.contractId))
         .setPayableAmount(new Hbar(amount))
         .setFunction(
           "mint",
           new ContractFunctionParameters()
             .addBytesArray(metadata)
-            .addString(AccountId.fromString(ngoId).toEvmAddress())
-            .addAddress(AccountId.fromString(accountId).toEvmAddress())
-        );
+            .addAddress(ngoAccount.evm_address)
+            .addAddress(userAccount.evm_address)
+        )
+        .setGas(5_000_000);
 
-      let txReceipt: TransactionReceipt | null = null;
+      let txReceipt: { serials: Long[] } | null = null;
 
       if (currency === APP_CONFIG.HBAR_CURRENCY) {
-        txReceipt = (await executeTransaction(accountId, tx)) as any;
+        txReceipt = await executeTransaction(accountId, tx);
       } else {
+        tx.freezeWith(client);
         const txResponse = await tx.execute(client);
         txReceipt = await txResponse.getReceipt(client);
       }
@@ -499,6 +524,8 @@ export const useDonation = () => {
       }
     },
     onError: (error: Error) => {
+      console.log(error);
+
       toast({
         title: "Donation failed",
         description: error.message,
