@@ -43,12 +43,14 @@ import { useRounds } from "@/hooks/useRounds";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LandingLoader } from "@/components/LandingLoader";
+import hbarLogo from "@/assets/hbar-logo.png";
+
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: rounds, isLoading: roundsLoading } = useRounds();
+  const { data: rounds } = useRounds();
 
   // Calculate real stats from Supabase
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ["landing-stats"],
     queryFn: async () => {
       // Get total rounds with donations
@@ -121,7 +123,7 @@ const Landing = () => {
     },
   ];
 
-  if (!rounds) return <LandingLoader />;
+  if (!rounds || !stats) return <LandingLoader />;
 
   return (
     <>
@@ -260,7 +262,7 @@ const Landing = () => {
               className="text-sm px-6 py-3 bg-background border-primary/30"
             >
               <img
-                src="/src/assets/hbar-logo.png"
+                src={hbarLogo}
                 alt="Hedera"
                 className="w-4 h-4 mr-2 inline"
               />
@@ -716,7 +718,7 @@ const Landing = () => {
                 <Link to={ROUTES.APP_ROUND(currentRound?.id || 5)}>
                   <Button
                     size="lg"
-                    className="gap-2 sm:gap-3 text-base sm:text-lg px-6 py-5 sm:px-8 sm:py-6 md:px-10 md:py-7 hover:scale-110 transition-transform shadow-[0_20px_60px_hsl(220_10%_40%_/_0.3)] bg-white text-primary hover:bg-white/90"
+                    className="gap-2 sm:gap-3 text-base sm:text-lg px-6 py-5 sm:px-8 sm:py-6 md:px-10 md:py-7 hover:scale-110 transition-transform shadow-[0_20px_60px_hsl(220_10%_40%_/_0.3)] bg-white text-secondary hover:bg-white/90"
                   >
                     <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
                     Start Your Quest{" "}
