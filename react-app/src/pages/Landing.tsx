@@ -612,7 +612,7 @@ const Landing = () => {
                     icon: Sparkles,
                     title: "Win to Earn",
                     description:
-                      "Beat the AI opponent to earn XP and level up. Accumulate rewards across multiple scenes!",
+                      "Beat the bad citizens opponent to earn XP and level up. Accumulate rewards across multiple scenes!",
                   },
                   {
                     icon: Zap,

@@ -24,8 +24,8 @@ const GameSection = () => {
             </h2>
           </div>
           <p className="text-muted-foreground mb-4">
-            Race against AI to collect trash and earn bonus XP! Choose your
-            difficulty level and compete for the top score.
+            Collect all trashes or plant trees while eliminating bad citizens
+            contributing to environmental pollution.
           </p>
           <div className="flex gap-4 text-sm">
             <div className="flex items-center gap-2">

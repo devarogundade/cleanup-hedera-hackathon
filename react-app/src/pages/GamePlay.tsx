@@ -254,7 +254,7 @@ const GamePlay = () => {
   // Get level-based settings (made easier with more items)
   const getLevelSettings = (level: GameLevel, scene: number = 1) => {
     // Base speed increases gradually with scene number
-    // Scene 1: slower AI, Scene 2: medium, Scene 3+: progressively faster
+    // Scene 1: slower citizens, Scene 2: medium, Scene 3+: progressively faster
     const sceneSpeedMultiplier = 0.5 + scene * 0.3; // Scene 1: 0.8x, Scene 2: 1.1x, Scene 3: 1.4x, etc.
 
     let baseSpeed: number;
@@ -1968,8 +1968,8 @@ const GamePlay = () => {
               </h2>
               <p className="text-muted-foreground mb-6">
                 {gameMode === "cleanup"
-                  ? "Race against the AI to collect more trash! Use arrow keys or WASD to move. Collect more trash than your opponent to win bonus XP!"
-                  : "Race against the AI to plant more trees! Use arrow keys or WASD to move. Plant more trees than your opponent to win bonus XP!"}
+                  ? "Race against the bad citizens to collect more trash! Use arrow keys or WASD to move. Collect all trash before time runs out to win bonus XP!"
+                  : "Race against the bad citizens to plant more trees! Use arrow keys or WASD to move. Plant all trees before time runs out to win bonus XP!"}
               </p>
 
               <div className="mb-6">
@@ -2018,7 +2018,7 @@ const GamePlay = () => {
                   <h2 className="text-4xl font-bold mb-4 text-gradient-gaming">
                     Victory!
                   </h2>
-                  <p className="text-xl mb-4">You defeated the AI opponent!</p>
+                  <p className="text-xl mb-4">You defeated the bad citizens!</p>
                   <p className="text-muted-foreground mb-4">
                     Scene #{currentScene} Complete! 🎉
                   </p>
@@ -2030,7 +2030,7 @@ const GamePlay = () => {
                     Mission Failed!
                   </h2>
                   <p className="text-xl mb-4">
-                    The AI collected more this time!
+                    The bad citizens won this time!
                   </p>
                   <p className="text-muted-foreground mb-4">
                     Don't give up! Watch an ad to continue or claim your XP.

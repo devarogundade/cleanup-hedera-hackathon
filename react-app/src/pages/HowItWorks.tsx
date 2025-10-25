@@ -264,7 +264,7 @@ const HowItWorks = () => {
                         <p className="text-sm text-muted-foreground">
                           Play through endless scenes with unique missions. Each
                           scene challenges you to collect trash or plant trees
-                          faster than the AI opponent.
+                          faster than the bad citizens can re-pollute.
                         </p>
                       </div>
                     </div>
@@ -312,8 +312,8 @@ const HowItWorks = () => {
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                       <span className="text-muted-foreground">
-                        Beat the AI opponent by collecting more items before
-                        time runs out
+                        Beat the bad citizens opponent by collecting all items
+                        before time runs out
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
