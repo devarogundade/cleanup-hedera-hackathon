@@ -35,7 +35,7 @@ const Header = () => {
   const { currentRound, setCurrentRound, lastestRound } = useApp();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { accountId, isLoading, connect, disconnect } = useHashConnect();
+  const { accountId, connect, disconnect } = useHashConnect();
 
   const handleButtonClick = (action: () => void) => {
     playSound("click");

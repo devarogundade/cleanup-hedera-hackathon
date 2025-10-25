@@ -8,10 +8,9 @@ import {
   useCallback,
 } from "react";
 import { ProfileSetupDialog } from "@/components/ProfileSetupDialog";
-import useHashConnect from "@/hooks/useHashConnect";
 import { useProfile } from "@/hooks/useProfile";
 import { useLastestRound } from "@/hooks/useRounds";
-import { Fraction, MintableFraction, RoundMetadata } from "@/types";
+import { MintableFraction, RoundMetadata } from "@/types";
 
 interface Achievement {
   title: string;
@@ -109,41 +108,44 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     setSelectedNGO(null);
   }, []);
 
-  const value: AppContextType = useMemo(() => ({
-    isConnected,
-    accountId,
-    isLoading,
-    setConnected,
-    setAccountId,
-    setLoading,
-    lastestRound,
-    currentRound,
-    setCurrentRound,
-    mintableFractions,
-    setMintableFractions,
-    totalPrice,
-    setTotalPrice,
-    selectedNGO,
-    setSelectedNGO,
-    currency,
-    setCurrency,
-    achievement,
-    setAchievement,
-    isRoundEnded: currentRound < lastestRound?.id,
-    resetDonationState,
-  }), [
-    isConnected,
-    accountId,
-    isLoading,
-    lastestRound,
-    currentRound,
-    mintableFractions,
-    totalPrice,
-    selectedNGO,
-    currency,
-    achievement,
-    resetDonationState,
-  ]);
+  const value: AppContextType = useMemo(
+    () => ({
+      isConnected,
+      accountId,
+      isLoading,
+      setConnected,
+      setAccountId,
+      setLoading,
+      lastestRound,
+      currentRound,
+      setCurrentRound,
+      mintableFractions,
+      setMintableFractions,
+      totalPrice,
+      setTotalPrice,
+      selectedNGO,
+      setSelectedNGO,
+      currency,
+      setCurrency,
+      achievement,
+      setAchievement,
+      isRoundEnded: currentRound < lastestRound?.id,
+      resetDonationState,
+    }),
+    [
+      isConnected,
+      accountId,
+      isLoading,
+      lastestRound,
+      currentRound,
+      mintableFractions,
+      totalPrice,
+      selectedNGO,
+      currency,
+      achievement,
+      resetDonationState,
+    ]
+  );
 
   return (
     <AppContext.Provider value={value}>

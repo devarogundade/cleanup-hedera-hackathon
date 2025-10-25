@@ -1,4 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * HashConnect Service
+ * Handles all wallet connection
+ */
+
 import { HashConnect } from "hashconnect";
 import { AccountId, LedgerId } from "@hashgraph/sdk";
 

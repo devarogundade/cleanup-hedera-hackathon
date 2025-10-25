@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Lock, Trophy, Check } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { XP_LEVELS } from "@/data/constants";
 
 interface XPLevelsDialogProps {
   open: boolean;
@@ -16,31 +17,16 @@ interface XPLevelsDialogProps {
   currentXP: number;
 }
 
-interface Level {
-  level: number;
-  xpRequired: number;
-  title: string;
-  rewards: string[];
-}
-
-const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevelsDialogProps) => {
-  const levels: Level[] = [
-    { level: 1, xpRequired: 0, title: "Eco Newbie", rewards: ["Welcome Badge", "First Step NFT"] },
-    { level: 2, xpRequired: 100, title: "Green Starter", rewards: ["Starter Badge", "+5% Voting Power"] },
-    { level: 3, xpRequired: 250, title: "Waste Warrior", rewards: ["Warrior Badge", "Special Avatar Frame"] },
-    { level: 4, xpRequired: 500, title: "Clean Champion", rewards: ["Champion Badge", "+10% Voting Power"] },
-    { level: 5, xpRequired: 1000, title: "Eco Guardian", rewards: ["Guardian Badge", "Exclusive NFT Design"] },
-    { level: 6, xpRequired: 2000, title: "Planet Protector", rewards: ["Protector Badge", "+15% Voting Power"] },
-    { level: 7, xpRequired: 3500, title: "Eco Warrior", rewards: ["Elite Badge", "Premium Avatar Frames"] },
-    { level: 8, xpRequired: 5500, title: "Nature's Hero", rewards: ["Hero Badge", "+20% Voting Power", "Custom Profile Theme"] },
-    { level: 9, xpRequired: 8000, title: "Earth Savior", rewards: ["Savior Badge", "Legendary NFT", "VIP Discord Role"] },
-    { level: 10, xpRequired: 12000, title: "Eco Legend", rewards: ["Legend Badge", "+30% Voting Power", "Hall of Fame Entry", "Ultra Rare NFT"] },
-  ];
-
+const XPLevelsDialog = ({
+  open,
+  onOpenChange,
+  currentLevel,
+  currentXP,
+}: XPLevelsDialogProps) => {
   const getTotalXP = () => {
-    const levelIndex = levels.findIndex(l => l.level === currentLevel);
+    const levelIndex = XP_LEVELS.findIndex((l) => l.level === currentLevel);
     if (levelIndex === -1) return currentXP;
-    const baseXP = levelIndex > 0 ? levels[levelIndex].xpRequired : 0;
+    const baseXP = levelIndex > 0 ? XP_LEVELS[levelIndex].xpRequired : 0;
     return baseXP + currentXP;
   };
 
@@ -63,7 +49,9 @@ const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevel
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Current Level</p>
-              <p className="text-2xl font-bold text-gradient">Level {currentLevel}</p>
+              <p className="text-2xl font-bold text-gradient">
+                Level {currentLevel}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Total XP</p>
@@ -74,7 +62,7 @@ const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevel
 
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-3">
-            {levels.map((level) => {
+            {XP_LEVELS.map((level) => {
               const unlocked = isLevelUnlocked(level.level);
               const isCurrent = level.level === currentLevel;
 
@@ -100,7 +88,9 @@ const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevel
                     >
                       {unlocked ? (
                         isCurrent ? (
-                          <span className="text-xl font-bold">{level.level}</span>
+                          <span className="text-xl font-bold">
+                            {level.level}
+                          </span>
                         ) : (
                           <Check className="w-6 h-6" />
                         )
@@ -119,7 +109,10 @@ const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevel
                           </Badge>
                         )}
                         {unlocked && !isCurrent && (
-                          <Badge variant="outline" className="text-xs border-primary/50">
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-primary/50"
+                          >
                             Unlocked
                           </Badge>
                         )}
@@ -130,18 +123,24 @@ const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevel
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">
-                        {unlocked ? "Level Achieved!" : `Requires ${level.xpRequired} XP`}
+                        {unlocked
+                          ? "Level Achieved!"
+                          : `Requires ${level.xpRequired} XP`}
                       </p>
 
                       {/* Rewards */}
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold text-muted-foreground">Rewards:</p>
+                        <p className="text-xs font-semibold text-muted-foreground">
+                          Rewards:
+                        </p>
                         <ul className="space-y-1">
                           {level.rewards.map((reward, idx) => (
                             <li
                               key={idx}
                               className={`text-sm flex items-center gap-2 ${
-                                unlocked ? "text-foreground" : "text-muted-foreground"
+                                unlocked
+                                  ? "text-foreground"
+                                  : "text-muted-foreground"
                               }`}
                             >
                               <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
@@ -157,9 +156,12 @@ const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevel
                   {isCurrent && (
                     <div className="mt-3 pt-3 border-t border-primary/20">
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Progress to Next Level</span>
+                        <span className="text-muted-foreground">
+                          Progress to Next Level
+                        </span>
                         <span className="font-semibold">
-                          {currentXP} / {levels[level.level]?.xpRequired || "MAX"}
+                          {currentXP} /{" "}
+                          {XP_LEVELS[level.level]?.xpRequired || "MAX"}
                         </span>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -167,8 +169,10 @@ const XPLevelsDialog = ({ open, onOpenChange, currentLevel, currentXP }: XPLevel
                           className="h-full bg-gradient-primary transition-all"
                           style={{
                             width: `${
-                              levels[level.level]
-                                ? (currentXP / levels[level.level].xpRequired) * 100
+                              XP_LEVELS[level.level]
+                                ? (currentXP /
+                                    XP_LEVELS[level.level].xpRequired) *
+                                  100
                                 : 100
                             }%`,
                           }}

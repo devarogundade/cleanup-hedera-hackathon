@@ -2,15 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
     --background: 240 10% 98%;
     --foreground: 240 5% 10%;
-    
+
     --round-ended-bg: 240 15% 96%;
 
     --card: 0 0% 100%;
@@ -48,14 +44,43 @@ All colors MUST be HSL.
     --gaming-accent: 290 70% 60%;
 
     /* Gaming Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(180 100% 45%), hsl(180 100% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(270 60% 55%), hsl(270 60% 65%));
-    --gradient-accent: linear-gradient(135deg, hsl(142 65% 45%), hsl(142 70% 50%));
-    --gradient-gaming: linear-gradient(135deg, hsl(180 100% 45%), hsl(270 60% 55%), hsl(142 65% 45%));
-    --gradient-gaming-subtle: linear-gradient(135deg, hsl(180 100% 45% / 0.1), hsl(270 60% 55% / 0.1));
-    --gradient-hero: linear-gradient(135deg, hsl(180 100% 45%), hsl(270 60% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.7), hsl(240 10% 98% / 0.5));
-    
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(180 100% 45%),
+      hsl(180 100% 55%)
+    );
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(270 60% 55%),
+      hsl(270 60% 65%)
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(142 65% 45%),
+      hsl(142 70% 50%)
+    );
+    --gradient-gaming: linear-gradient(
+      135deg,
+      hsl(180 100% 45%),
+      hsl(270 60% 55%),
+      hsl(142 65% 45%)
+    );
+    --gradient-gaming-subtle: linear-gradient(
+      135deg,
+      hsl(180 100% 45% / 0.1),
+      hsl(270 60% 55% / 0.1)
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(180 100% 45%),
+      hsl(270 60% 55%)
+    );
+    --gradient-card: linear-gradient(
+      145deg,
+      hsl(0 0% 100% / 0.7),
+      hsl(240 10% 98% / 0.5)
+    );
+
     /* Subtle Grey Shadows */
     --shadow-sm: 0 2px 8px hsl(240 5% 70% / 0.08);
     --shadow-md: 0 4px 16px hsl(240 5% 70% / 0.12);
@@ -64,7 +89,7 @@ All colors MUST be HSL.
     --shadow-gaming: 0 12px 40px -12px hsl(240 5% 70% / 0.2);
     --shadow-glow: 0 0 40px hsl(240 5% 70% / 0.15);
     --shadow-glow-accent: 0 0 40px hsl(240 5% 65% / 0.18);
-    
+
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
@@ -72,7 +97,7 @@ All colors MUST be HSL.
   .dark {
     --background: 240 15% 8%;
     --foreground: 0 0% 98%;
-    
+
     --round-ended-bg: 240 15% 12%;
 
     --card: 240 15% 10%;
@@ -108,14 +133,43 @@ All colors MUST be HSL.
     --gaming-accent: 290 70% 65%;
 
     /* Gaming Gradients - Dark */
-    --gradient-primary: linear-gradient(135deg, hsl(180 100% 50%), hsl(180 100% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(270 60% 60%), hsl(270 60% 70%));
-    --gradient-accent: linear-gradient(135deg, hsl(142 60% 50%), hsl(142 65% 55%));
-    --gradient-gaming: linear-gradient(135deg, hsl(180 100% 50%), hsl(270 60% 60%), hsl(142 60% 50%));
-    --gradient-gaming-subtle: linear-gradient(135deg, hsl(180 100% 50% / 0.15), hsl(270 60% 60% / 0.15));
-    --gradient-hero: linear-gradient(135deg, hsl(180 100% 50%), hsl(270 60% 60%));
-    --gradient-card: linear-gradient(145deg, hsl(240 15% 10% / 0.8), hsl(240 15% 12% / 0.6));
-    
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(180 100% 50%),
+      hsl(180 100% 60%)
+    );
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(270 60% 60%),
+      hsl(270 60% 70%)
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(142 60% 50%),
+      hsl(142 65% 55%)
+    );
+    --gradient-gaming: linear-gradient(
+      135deg,
+      hsl(180 100% 50%),
+      hsl(270 60% 60%),
+      hsl(142 60% 50%)
+    );
+    --gradient-gaming-subtle: linear-gradient(
+      135deg,
+      hsl(180 100% 50% / 0.15),
+      hsl(270 60% 60% / 0.15)
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(180 100% 50%),
+      hsl(270 60% 60%)
+    );
+    --gradient-card: linear-gradient(
+      145deg,
+      hsl(240 15% 10% / 0.8),
+      hsl(240 15% 12% / 0.6)
+    );
+
     /* Subtle Grey Shadows - Dark */
     --shadow-sm: 0 2px 8px hsl(240 15% 5% / 0.25);
     --shadow-md: 0 4px 16px hsl(240 15% 5% / 0.35);
@@ -134,10 +188,21 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-grotesk;
-    background-image: 
-      radial-gradient(circle at 20% 30%, hsl(180 100% 45% / 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, hsl(270 60% 55% / 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 50% 50%, hsl(142 65% 45% / 0.02) 0%, transparent 50%);
+    background-image: radial-gradient(
+        circle at 20% 30%,
+        hsl(180 100% 45% / 0.03) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        hsl(270 60% 55% / 0.03) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        hsl(142 65% 45% / 0.02) 0%,
+        transparent 50%
+      );
   }
 
   /* Custom Scrollbar */
@@ -167,12 +232,23 @@ All colors MUST be HSL.
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary) / 0.4) hsl(var(--muted) / 0.3);
   }
-  
+
   .dark body {
-    background-image: 
-      radial-gradient(circle at 20% 30%, hsl(180 100% 50% / 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, hsl(270 60% 60% / 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 50% 50%, hsl(142 60% 50% / 0.03) 0%, transparent 50%);
+    background-image: radial-gradient(
+        circle at 20% 30%,
+        hsl(180 100% 50% / 0.05) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        hsl(270 60% 60% / 0.05) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        hsl(142 60% 50% / 0.03) 0%,
+        transparent 50%
+      );
   }
 }
 
@@ -180,54 +256,70 @@ All colors MUST be HSL.
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent;
   }
-  
+
   .text-gradient-gaming {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(180 100% 45%), hsl(270 60% 55%), hsl(142 65% 45%));
+    background-image: linear-gradient(
+      135deg,
+      hsl(180 100% 45%),
+      hsl(270 60% 55%),
+      hsl(142 65% 45%)
+    );
   }
-  
+
   .dark .text-gradient-gaming {
-    background-image: linear-gradient(135deg, hsl(180 100% 50%), hsl(270 60% 60%), hsl(142 60% 50%));
+    background-image: linear-gradient(
+      135deg,
+      hsl(180 100% 50%),
+      hsl(270 60% 60%),
+      hsl(142 60% 50%)
+    );
   }
-  
+
   .transition-smooth {
     transition: var(--transition-smooth);
   }
-  
+
   .transition-bounce {
     transition: var(--transition-bounce);
   }
-  
+
   /* Glassmorphism utility */
   .glass {
     @apply backdrop-blur-sm bg-white/70 dark:bg-black/50 border border-white/30 dark:border-white/15;
   }
-  
+
   .glass-card {
     @apply backdrop-blur-sm bg-white/80 dark:bg-black/60 border border-white/40 dark:border-white/20 shadow-card;
   }
-  
+
   /* Parallelogram shape utility */
   .skew-parallelogram {
     transform: skewX(-5deg);
   }
-  
+
   .unskew-parallelogram {
     transform: skewX(5deg);
   }
-  
+
   /* Gradient Animation */
   @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
-  
+
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient 3s ease infinite;
   }
-  
+
   .bg-size-200 {
     background-size: 200% 200%;
   }

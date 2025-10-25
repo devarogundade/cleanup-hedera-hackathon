@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, MapPin, Gamepad2, Sparkles } from "lucide-react";
+import { Coins, MapPin, Sparkles } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useApp } from "@/contexts/AppContext";
 import { useProfile } from "@/hooks/useProfile";

@@ -7,15 +7,20 @@ interface TypingTextProps {
   className?: string;
 }
 
-export const TypingText = ({ text, speed = 50, onComplete, className = "" }: TypingTextProps) => {
+export const TypingText = ({
+  text,
+  speed = 50,
+  onComplete,
+  className = "",
+}: TypingTextProps) => {
   const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (currentIndex < text.length) {
       const timeout = setTimeout(() => {
-        setDisplayedText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
+        setDisplayedText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
       }, speed);
 
       return () => clearTimeout(timeout);
@@ -33,9 +38,7 @@ export const TypingText = ({ text, speed = 50, onComplete, className = "" }: Typ
   return (
     <span className={className}>
       {displayedText}
-      {currentIndex < text.length && (
-        <span className="animate-pulse">|</span>
-      )}
+      {currentIndex < text.length && <span className="animate-pulse">|</span>}
     </span>
   );
 };

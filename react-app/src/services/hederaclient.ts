@@ -1,3 +1,8 @@
+/**
+ * Hedera Client Service
+ * Handles all hedera testnet connections
+ */
+
 import { AccountId, Client, Hbar, PrivateKey } from "@hashgraph/sdk";
 
 export const testnetClient = (): Client => {

@@ -71,16 +71,19 @@ export const useDonation = () => {
       }
 
       // Handle NGN payment with Paystack
+      let amountInNGN: number = 0;
       if (currency === APP_CONFIG.NGN_CURRENCY) {
         onProgress("Processing payment with Paystack...");
 
         // Calculate amount in NGN
-        const amountInNGN = amount * APP_CONFIG.NGN_TO_HBAR_RATE;
+        amountInNGN = amount * APP_CONFIG.NGN_TO_HBAR_RATE;
 
-        // Get user email (use a default or prompt if not available)
+        // Get user email
         const userEmail = profile.username
-          ? `${profile.username.toLowerCase().replace(/\s+/g, "")}@cleanup.app`
-          : `${accountId}@cleanup.app`;
+          ? `${profile.username
+              .toLowerCase()
+              .replace(/\s+/g, "")}@thecleanup.netlify.app`
+          : `${accountId}@thecleanup.netlify.app`;
 
         // Wait for Paystack payment
         await new Promise<void>((resolve, reject) => {
@@ -184,6 +187,7 @@ export const useDonation = () => {
         const imageU8 = new Uint8Array(fraction.buffer.buffer as ArrayBuffer);
         const imageBase64 = toBase64(imageU8);
 
+        // Upload image via Pinata to IPFS
         const { url: imageUrl, mime_type } = await upload(imageBase64);
 
         // Create NFT metadata
@@ -203,7 +207,7 @@ export const useDonation = () => {
           },
         };
 
-        // Upload metadata via Edge Function
+        // Upload metadata via Pinata to IPFS
         const metadataJson = JSON.stringify(nftMetadata);
         const metadataBase64 = btoa(unescape(encodeURIComponent(metadataJson)));
 
@@ -214,14 +218,12 @@ export const useDonation = () => {
 
       onProgress("Minting NFTs...");
 
-      const ngoAccountReq = await fetch(
-        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${ngoId}`
-      );
+      const BASE_URL: string = "https://testnet.mirrornode.hedera.com/api/v1";
+
+      const ngoAccountReq = await fetch(`${BASE_URL}/accounts/${ngoId}`);
       const ngoAccount = await ngoAccountReq.json();
 
-      const userAccountReq = await fetch(
-        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${accountId}`
-      );
+      const userAccountReq = await fetch(`${BASE_URL}/accounts/${accountId}`);
       const userAccount = await userAccountReq.json();
 
       const tx = new ContractExecuteTransaction()
@@ -246,21 +248,6 @@ export const useDonation = () => {
         txReceipt = await txResponse.getReceipt(client);
       }
 
-      // Convert to HBAR based on currency
-      const amountInHBAR =
-        currency === APP_CONFIG.HBAR_CURRENCY
-          ? amount
-          : currency === APP_CONFIG.XP_CURRENCY
-          ? amount / APP_CONFIG.HBAR_TO_XP_RATE
-          : amount / APP_CONFIG.NGN_TO_HBAR_RATE;
-
-      const amountInNGN =
-        currency === APP_CONFIG.NGN_CURRENCY
-          ? amount
-          : currency === APP_CONFIG.XP_CURRENCY
-          ? (amount / APP_CONFIG.HBAR_TO_XP_RATE) * APP_CONFIG.NGN_TO_HBAR_RATE
-          : amount * APP_CONFIG.NGN_TO_HBAR_RATE;
-
       // Calculate XP (10 XP per fraction)
       const xpEarned = fractions.length * 10;
 
@@ -274,8 +261,8 @@ export const useDonation = () => {
         user_id: accountId,
         round_id: roundMetadata.id,
         type: "donation" as const,
-        amount: amountInHBAR,
-        amount_in_hbar: amountInHBAR,
+        amount: amount,
+        amount_in_hbar: amount,
         amount_in_ngn: amountInNGN,
         currency,
         fraction_ids: fractionPositions,
@@ -376,8 +363,8 @@ export const useDonation = () => {
           .update({
             donated_fractions:
               currentRound.donated_fractions + fractionPositions.length,
-            total_amount: currentRound.total_amount + amountInHBAR,
-            total_donations: currentRound.total_donations + amountInHBAR,
+            total_amount: currentRound.total_amount + amount,
+            total_donations: currentRound.total_donations + amount,
             total_votes: currentRound.total_votes + votingPower,
             participant_count: isFirstDonation
               ? currentRound.participant_count + 1
@@ -401,7 +388,7 @@ export const useDonation = () => {
           total_donations: profile.total_donations + 1,
           total_fractions: profile.total_fractions + fractionPositions.length,
           total_nfts: profile.total_nfts + fractionPositions.length,
-          total_donation_value: profile.total_donation_value + amountInHBAR,
+          total_donation_value: profile.total_donation_value + amount,
           level: newLevel,
         })
         .eq("account_id", accountId);
@@ -416,7 +403,7 @@ export const useDonation = () => {
         {
           total_donations: profile.total_donations + 1,
           total_nfts: profile.total_nfts + fractionPositions.length,
-          total_donation_value: profile.total_donation_value + amountInHBAR,
+          total_donation_value: profile.total_donation_value + amount,
           level: newLevel,
           current_streak: profile.current_streak,
         },

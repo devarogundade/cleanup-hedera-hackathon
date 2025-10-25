@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +21,13 @@ interface ProfileEditDialogProps {
   onSave: (name: string, photo: string) => void;
 }
 
-const ProfileEditDialog = ({ open, onOpenChange, currentName, currentPhoto, onSave }: ProfileEditDialogProps) => {
+const ProfileEditDialog = ({
+  open,
+  onOpenChange,
+  currentName,
+  currentPhoto,
+  onSave,
+}: ProfileEditDialogProps) => {
   const { playSound } = useSettings();
   const [name, setName] = useState(currentName);
   const [photoUrl, setPhotoUrl] = useState(currentPhoto);
@@ -28,11 +39,11 @@ const ProfileEditDialog = ({ open, onOpenChange, currentName, currentPhoto, onSa
         description: "Please enter your name",
         variant: "destructive",
       });
-      playSound('error');
+      playSound("error");
       return;
     }
 
-    playSound('success');
+    playSound("success");
     onSave(name.trim(), photoUrl);
     onOpenChange(false);
     toast({
@@ -56,33 +67,33 @@ const ProfileEditDialog = ({ open, onOpenChange, currentName, currentPhoto, onSa
 
     try {
       // Upload to Supabase storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(7)}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       const { supabase } = await import("@/integrations/supabase/client");
       const { error: uploadError } = await supabase.storage
-        .from('cleanup')
+        .from("cleanup")
         .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
+          cacheControl: "3600",
+          upsert: false,
         });
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data } = supabase.storage
-        .from('cleanup')
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from("cleanup").getPublicUrl(filePath);
 
       setPhotoUrl(data.publicUrl);
-      
+
       toast({
         title: "Image uploaded",
         description: "Profile image uploaded successfully",
       });
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
         description: "Failed to upload image. Please try again.",
@@ -108,8 +119,8 @@ const ProfileEditDialog = ({ open, onOpenChange, currentName, currentPhoto, onSa
                   <User className="w-12 h-12" />
                 </AvatarFallback>
               </Avatar>
-              <label 
-                htmlFor="photo-upload" 
+              <label
+                htmlFor="photo-upload"
                 className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
               >
                 <Camera className="w-8 h-8 text-primary" />
@@ -138,21 +149,6 @@ const ProfileEditDialog = ({ open, onOpenChange, currentName, currentPhoto, onSa
               maxLength={50}
               className="border-primary/30 focus:border-primary"
             />
-          </div>
-
-          {/* Image URL (Optional) */}
-          <div className="space-y-2">
-            <Label htmlFor="photo-url">Photo URL (optional)</Label>
-            <Input
-              id="photo-url"
-              value={photoUrl}
-              onChange={(e) => setPhotoUrl(e.target.value)}
-              placeholder="https://example.com/photo.jpg"
-              className="border-primary/30 focus:border-primary"
-            />
-            <p className="text-xs text-muted-foreground">
-              Or paste an image URL directly
-            </p>
           </div>
 
           <div className="flex gap-2">
