@@ -17,3 +17,21 @@ npm install
 # 4. Start the development server
 vite
 ```
+
+### 🌐 Environment Variables
+
+Create a .env file inside the react-app directory and add your credentials:
+
+```env
+VITE_SUPABASE_PROJECT_ID=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+VITE_SUPABASE_URL=
+
+VITE_PAYSTACK_PK_KEY=
+
+VITE_OPERATOR_ACCOUNT_ID=
+VITE_OPERATOR_ACCOUNT_PK=
+
+VITE_PINATA_JWT=
+VITE_PINATA_GATEWAY=
+```
