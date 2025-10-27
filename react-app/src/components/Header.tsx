@@ -27,6 +27,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useApp } from "@/contexts/AppContext";
 import { useState } from "react";
 import useHashConnect from "@/hooks/useHashConnect";
+import logo from "@/assets/logo.png";
 
 const Header = () => {
   const location = useLocation();
@@ -69,10 +70,12 @@ const Header = () => {
         <div className="flex items-center justify-between h-full gap-2">
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
-              <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-gaming shadow-md group-hover:opacity-90 transition-all flex items-center justify-center">
-                <Leaf className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-white" />
-              </div>
-              <span className="text-lg sm:text-xl md:text-2xl font-bold text-gradient-gaming">
+              <img
+                src={logo}
+                className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl shadow-[0_4px_16px_hsl(220_10%_50%_/_0.2)] group-hover:scale-110 transition-transform flex items-center justify-center"
+              />
+
+              <span className="font-bold text-xl sm:text-2xl text-foreground">
                 CleanUp
               </span>
             </Link>

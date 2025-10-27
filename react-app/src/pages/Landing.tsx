@@ -43,6 +43,7 @@ import { useRounds } from "@/hooks/useRounds";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LandingLoader } from "@/components/LandingLoader";
+import logo from "@/assets/logo.png";
 import hbarLogo from "@/assets/hbar-logo.png";
 
 const Landing = () => {
@@ -128,12 +129,13 @@ const Landing = () => {
   return (
     <>
       {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-lg sticky top-0 z-50 h-[60px] sm:h-[70px]">
+      <header className="border-b bg-background/80 backdrop-blur-lg fixed w-full top-0 z-50 h-[60px] sm:h-[70px]">
         <div className="container mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer">
-            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl bg-gradient-primary shadow-[0_4px_16px_hsl(220_10%_50%_/_0.2)] group-hover:scale-110 transition-transform flex items-center justify-center animate-glow-pulse">
-              <Leaf className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
-            </div>
+            <img
+              src={logo}
+              className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl shadow-[0_4px_16px_hsl(220_10%_50%_/_0.2)] group-hover:scale-110 transition-transform flex items-center justify-center"
+            />
             <span className="font-bold text-xl sm:text-2xl text-foreground">
               CleanUp
             </span>
@@ -247,6 +249,16 @@ const Landing = () => {
       </header>
 
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
+        <div className="hero-bg w-full h-full">
+          <iframe
+            className="hero-iframe"
+            src="https://www.youtube.com/embed/aAVQAvkD7pw?autoplay=1&loop=1&mute=1&controls=0&playlist=aAVQAvkD7pw"
+            title="YouTube video background"
+            frameBorder="0"
+            allow="autoplay; fullscreen"
+          ></iframe>
+        </div>
+
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
