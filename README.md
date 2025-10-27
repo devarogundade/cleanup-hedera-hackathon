@@ -59,8 +59,6 @@ npm install
 
 ### 🌐 Environment Variables
 
-Create a .env file inside the smart-contracts directory and add your credentials:
-
 ```env
 # 4. Set config variables
 npm config set HEDERA_RPC_URL <value>
