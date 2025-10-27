@@ -129,7 +129,7 @@ const Landing = () => {
   return (
     <>
       {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-lg fixed w-full top-0 z-50 h-[60px] sm:h-[70px]">
+      <header className="border-b bg-background/50 backdrop-blur-sm fixed w-full top-0 z-50 h-[60px] sm:h-[70px]">
         <div className="container mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer">
             <img
@@ -249,7 +249,14 @@ const Landing = () => {
       </header>
 
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
-        <div className="hero-bg w-full h-full">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-40 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-primary-glow/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="hero-bg w-full">
           <iframe
             className="hero-iframe"
             src="https://www.youtube.com/embed/aAVQAvkD7pw?autoplay=1&loop=1&mute=1&controls=0&playlist=aAVQAvkD7pw"
@@ -259,15 +266,18 @@ const Landing = () => {
           ></iframe>
         </div>
 
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-40 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-primary-glow/5 rounded-full blur-3xl"></div>
-        </div>
-
         {/* Hero Section */}
         <section className="container mx-auto px-6 py-24 text-center relative z-10">
+          <div className="hero-bg w-full">
+            <iframe
+              className="hero-iframe"
+              src="https://www.youtube.com/embed/aAVQAvkD7pw?autoplay=1&loop=1&mute=1&controls=0&playlist=aAVQAvkD7pw"
+              title="YouTube video background"
+              frameBorder="0"
+              allow="autoplay; fullscreen"
+            ></iframe>
+          </div>
+
           <div className="flex flex-col items-center gap-3 mb-6">
             <Badge
               variant="outline"
