@@ -9,7 +9,7 @@
 git clone https://github.com/devarogundade/cleanup-hedera-hackathon.git
 
 # 2. Navigate to the React app directory
-cd cleanup/react-app
+cd react-app
 
 # 3. Install dependencies
 npm install
@@ -47,7 +47,7 @@ vite
 git clone https://github.com/devarogundade/cleanup-hedera-hackathon.git
 
 # 2. Navigate to the React app directory
-cd cleanup/smart-contract
+cd smart-contract
 
 # 3. Install dependencies
 npm install
