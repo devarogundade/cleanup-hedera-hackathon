@@ -13,9 +13,6 @@ cd cleanup/react-app
 
 # 3. Install dependencies
 npm install
-
-# 4. Start the development server
-vite
 ```
 
 ### 🌐 Environment Variables
@@ -36,6 +33,11 @@ VITE_PINATA_JWT=
 VITE_PINATA_GATEWAY=
 ```
 
+```bash
+# 4. Start the development server
+vite
+```
+
 # Smart Contracts
 
 ## ⚙️ Installation
@@ -49,9 +51,20 @@ cd cleanup/smart-contract
 
 # 3. Install dependencies
 npm install
-
-# 4. Start the development server
-npx hardat compile
 ```
 
+### 🌐 Environment Variables
+
+Create a .env file inside the smart-contracts directory and add your credentials:
+
+```env
+# 4. Set config variables
+npm config set HEDERA_RPC_URL <value>
+npm config set HEDERA_PRIVATE_KEY <value>
+```
+
+```bash
+# 5. Start the development server
+npx hardat compile
+```
 
