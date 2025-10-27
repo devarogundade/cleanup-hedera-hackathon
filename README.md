@@ -35,3 +35,23 @@ VITE_OPERATOR_ACCOUNT_PK=
 VITE_PINATA_JWT=
 VITE_PINATA_GATEWAY=
 ```
+
+# Smart Contracts
+
+## ⚙️ Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/devarogundade/cleanup-hedera-hackathon.git
+
+# 2. Navigate to the React app directory
+cd cleanup/smart-contract
+
+# 3. Install dependencies
+npm install
+
+# 4. Start the development server
+npx hardat compile
+```
+
+
