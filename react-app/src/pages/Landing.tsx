@@ -271,7 +271,7 @@ const Landing = () => {
           <div className="flex flex-col items-center gap-3 mb-6">
             <Badge
               variant="outline"
-              className="text-sm px-6 py-3 bg-background border-primary/30"
+              className="text-sm px-6 py-3 bg-background border-primary/30 mt-10"
             >
               <img
                 src={hbarLogo}
@@ -749,7 +749,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-primary"></div>
+                <img src={logo} className="w-8 h-8"></img>
                 <span className="font-bold text-xl text-foreground">
                   {APP_CONFIG.NAME}
                 </span>
