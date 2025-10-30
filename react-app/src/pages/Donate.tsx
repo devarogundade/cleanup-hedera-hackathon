@@ -279,7 +279,8 @@ const Donate = () => {
                   {mintableFractions.length} fractions
                 </div>
                 <Badge variant="secondary" className="mt-2 text-xs">
-                  {mintableFractions.map((m) => m.position).join(", ")} NFT
+                  {mintableFractions.map((m) => `#${m.position}`).join(", ")}{" "}
+                  NFT
                   {mintableFractions.length !== 1 ? "s" : ""} included
                 </Badge>
               </div>

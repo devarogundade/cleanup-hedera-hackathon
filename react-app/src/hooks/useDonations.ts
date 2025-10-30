@@ -264,7 +264,7 @@ export const useDonation = () => {
         amount: amount,
         amount_in_hbar: amount,
         amount_in_ngn: amountInNGN,
-        currency,
+        currency: "HBAR",
         fraction_ids: fractionPositions,
         nft_token_ids: nftTokenIds.map(String),
         ngo_id: ngoId,
