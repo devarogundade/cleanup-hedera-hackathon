@@ -16,15 +16,15 @@ async function main() {
     squareMeters: 10,
     latitude: 340_195,
     longitude: -1_184_912,
-    votingPowerBps: 10_000_000_000,
+    votingPowerBps: 100_000,
   });
   await land.waitForDeployment();
 
   console.log("Deployed land:", await land.getAddress());
 
   await land.createUnderlying(
-    "Coastal Cleanup - Santa Monica Beach",
-    "CCSMB",
+    "Coastal Cleanup - Lagos Elegushi Beach",
+    "CCLEB",
     7_776_000,
     {
       value: ethers.parseEther("10"),
@@ -47,5 +47,5 @@ main().catch((err) => {
 });
 
 // Deploying contracts with: 0x2531dCd3dC58559c19EEE09736443D026D40d5f5
-// Deployed land: 0x25343B605175F221FC9c2bef6f737Cc8FFD7667c
+// Deployed land: 0x792540a6258c0d608830C5aFa8a871E898664b6c
 // Created Underlying NFT

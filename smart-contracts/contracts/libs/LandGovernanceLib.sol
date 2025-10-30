@@ -30,7 +30,7 @@ library LandGovernanceLib {
     // ---------------------------------------------------------------------
     // CONSTANTS
     // ---------------------------------------------------------------------
-    int64 internal constant VOTING_POWER_BPS = 100_000_000;
+    int64 internal constant VOTING_POWER_BPS = 1_000;
 
     // ---------------------------------------------------------------------
     // INTERNAL FUNCTION TO ACCESS STORAGE
