@@ -6,6 +6,11 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { Buffer } from "buffer";
+
+window.global = window.global ?? window;
+window.Buffer = window.Buffer ?? Buffer;
+
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
