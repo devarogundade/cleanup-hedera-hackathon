@@ -61,8 +61,8 @@ npm install
 
 ```env
 # 4. Set config variables
-npm config set HEDERA_RPC_URL <value>
-npm config set HEDERA_PRIVATE_KEY <value>
+npx hardhat keystore set HEDERA_RPC_URL
+npx hardhat keystore set HEDERA_PRIVATE_KEY
 ```
 
 ```bash
