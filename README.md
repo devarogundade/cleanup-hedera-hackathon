@@ -66,8 +66,13 @@ npm config set HEDERA_PRIVATE_KEY <value>
 ```
 
 ```bash
-# 5. Start the development server
+# 5. Compile contracts
 npx hardat compile
+```
+
+```bash
+# 6. Start the development server
+npx hardhat run scripts/deploy.ts --network testnet
 ```
 
 ### Hedera Developer Certificates
