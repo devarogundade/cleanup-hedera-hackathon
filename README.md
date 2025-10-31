@@ -79,3 +79,7 @@ npx hardhat run scripts/deploy.ts --network testnet
 ### Hedera Developer Certificates
 
 [certificate.pdf](https://github.com/user-attachments/files/23266241/ibrahim_arogundade_certificate.pdf)
+
+### Pitch Deck
+
+[Pitch Deck Link](https://www.canva.com/design/DAG2-KqAv8A/r6zrSUxVewKNieki79BgHw/view?utm_content=DAG2-KqAv8A&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h00fdf42b09)
