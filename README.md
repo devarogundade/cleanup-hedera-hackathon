@@ -3,7 +3,7 @@
 **Cleanup** is a Web3-powered platform that turns real-world pollution into interactive, tokenized missions.  
 Users can **sponsor, play, and verify** cleanup activities using NFTs, drones, and Hedera Hashgraph — making environmental restoration transparent, rewarding, and fun.
 
-<img width="1141" height="699" alt="Untitled Diagram drawio (2)" src="https://github.com/user-attachments/assets/90a66494-f75f-469d-8cec-53bee667592f" />
+<img width="1919" height="1079" alt="Screenshot 2025-10-31 223548" src="https://github.com/user-attachments/assets/4ff6316c-a72c-4004-87e8-be98fccac2fc" />
 
 # React App
 
